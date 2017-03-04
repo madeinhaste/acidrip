@@ -1,0 +1,72 @@
+[
+    {
+        "id": 0,
+        "name": "Bright Moon Cottage",
+        "nlbds": 5
+    },
+    {
+        "id": 1,
+        "name": "Pit & Temple",
+        "nlbds": 6
+    },
+    {
+        "id": 2,
+        "name": "Kyoto",
+        "nlbds": 36
+    },
+    {
+        "id": 3,
+        "name": "The Natural World",
+        "nlbds": 256
+    },
+    {
+        "id": 4,
+        "name": "Happy Town",
+        "nlbds": 30
+    },
+    {
+        "id": 5,
+        "name": "Violence District",
+        "nlbds": 30
+    },
+    {
+        "id": 6,
+        "name": "Moonlight Tower",
+        "nlbds": 6
+    },
+    {
+        "id": 7,
+        "name": "Temple Dojo",
+        "nlbds": 5
+    },
+    {
+        "id": 8,
+        "name": "Flesh Tunnels",
+        "nlbds": 3
+    },
+    {
+        "id": 9,
+        "name": "Clockwork Machines",
+        "nlbds": 2
+    },
+    {
+        "id": 10,
+        "name": "Long Hallway",
+        "nlbds": 3
+    },
+    {
+        "id": 11,
+        "name": "Sun Faces Heave",
+        "nlbds": 12
+    },
+    {
+        "id": 12,
+        "name": "Black Space",
+        "nlbds": 20
+    },
+    {
+        "id": 13,
+        "name": "Monument Park",
+        "nlbds": 4
+    }
+]
