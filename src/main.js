@@ -211,7 +211,7 @@ window.tix_main = function() {
                 var f = new BinaryReader(buf);
                 var tix = new TIX;
                 tix.read(f);
-                display_tix(tix);
+                display_tix2(tix);
             });
 
     function display_tix(tix) {
@@ -263,9 +263,13 @@ window.tix_main = function() {
             });
         });
 
+        var $detail = $('<pre>');
+        var detail = [];
+
         $('#main')
             .append('<h3>VRAM</h3>')
-            .append(atlas);
+            .append(atlas)
+            .append($detail);
 
         key('space', function() {
             var tim = tims.pop();
@@ -274,7 +278,22 @@ window.tix_main = function() {
                 atlas_ctx.fillRect(0, 0, 640, 16);
                 return;
             }
+
+            // tpage -> x,y
+            let tpage = tim.tpage;
+            let tpx = (tpage & 15) << 7;
+            let tpy = (((tpage & 16) >> 4) << 8) +
+                      (((tpage & 0x800) >> 11) << 9);
+            
             atlas_ctx.putImageData(tim.image, 2*tim.xorg, tim.yorg);
+
+            detail.push(`${2*tim.xorg},${tim.yorg} tp:${tim.tpage} ${tpx},${tpy}`);
+            $detail.text(detail.join('\n'));
         });
+    }
+
+    function display_tix2(tix) {
+        tix.update_canvas();
+        $('#main').append(tix.canvas);
     }
 }
