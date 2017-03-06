@@ -18,7 +18,7 @@ window.main = function() {
     console.assert(gl);
 
     var stages = null;
-    var stage_index = 1;
+    var stage_index = 3;
     var lbd_index = 0;
     var lbd_count = 0;
     var lbd = null;
@@ -106,6 +106,23 @@ window.main = function() {
 
     var redraw2 = _.debounce(function() { canvas.redraw() }, 100);
 
+    function check_done() {
+        for (var i = 0; i < lbd_count; ++i)
+            if (!lbds[i])
+                return;
+        
+        console.log('DONE');
+
+        var vertex_count = 0;
+        lbds.forEach(lbd => {
+            lbd.tmd.objects.forEach(obj => {
+                vertex_count += obj.vertex_count;
+            });
+        });
+
+        console.log('vertex-count:', vertex_count);
+    }
+
     function load_lbds(stage_index, lbd_count) {
         _.each(lbds, destroy_lbd);
         lbds = [];
@@ -120,6 +137,7 @@ window.main = function() {
                     lbd.read(f);
                     lbds[lbd_index] = lbd;
                     redraw2();
+                    check_done();
                 });
         }
 
@@ -145,29 +163,31 @@ window.main = function() {
     key('pagedown', () => next_stage(-1));
 
     var mat = mat4.create();
+    var pgm;
+
+    function setup_draw_tmd(env) {
+        pgm = get_program('tmd').use();
+        pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
+        pgm.uniform3fv('view_pos', env.camera.view_pos);
+        pgm.uniform3fv('light_pos', env.light_pos);
+        pgm.uniformSampler2D('s_tix', tix.texture);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.CULL_FACE);
+    }
 
     function draw_tmd_object(env, obj, mat) {
         if (!obj.vertex_buffer) {
             obj.vertex_buffer = new_vertex_buffer(obj.vertex_array);
         }
 
-        var pgm = get_program('tmd').use();
-        pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
-        pgm.uniform3fv('view_pos', env.camera.view_pos);
-        pgm.uniform3fv('light_pos', env.light_pos);
-        pgm.uniformSampler2D('s_tix', tix.texture);
-
+        pgm.uniformMatrix4fv('m_obj', mat);
         bind_vertex_buffer(obj.vertex_buffer);
-
         pgm.vertexAttribPointer('position', 3, gl.SHORT, false, 24, 0);
         pgm.vertexAttribPointer('normal', 3, gl.SHORT, true, 24, 8);
         pgm.vertexAttribPointer('color', 3, gl.UNSIGNED_BYTE, true, 24, 16);
         pgm.vertexAttribPointer('texcoord', 2, gl.UNSIGNED_SHORT, false, 24, 20);
 
-        gl.enable(gl.DEPTH_TEST);
-        gl.disable(gl.CULL_FACE);
-
-        pgm.uniformMatrix4fv('m_obj', mat);
         gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
     }
 
@@ -199,11 +219,13 @@ window.main = function() {
         if (!tix.texture)
             return;
 
+        setup_draw_tmd(env);
+
         for (var ty = 0; ty < 20; ++ty) {
             for (var tx = 0; tx < 20; ++tx) {
                 var tile_index = 20*ty + tx;
                 var tile = lbd.tiles[tile_index];
-                draw_tile(env, lbd, tile, 20.1*lx + tx, 20.1* ly + ty);
+                draw_tile(env, lbd, tile, 20*lx + tx, 20* ly + ty);
             }
         }
     }
