@@ -12,14 +12,20 @@ window.main = function() {
         sources: [ 'shaders/tmd.glsl' ]
     });
 
+    canvas.camera.far = 10000;
+
     // check gl & setup?
     console.assert(gl);
 
     var stages = null;
-    var stage_index = 0;
+    var stage_index = 1;
     var lbd_index = 0;
     var lbd_count = 0;
     var lbd = null;
+    var lbd_columns = 0;
+
+    var lbds = [];
+
     var tix = new TIX;
 
     fetch('data/stages.json')
@@ -33,9 +39,12 @@ window.main = function() {
         stage_index = modulo(stage_index + dir, stages.length);
         var stage = stages[stage_index];
         lbd_count = stage.nlbds;
-        lbd_index = 0;
-        next_lbd(0);
         load_tix();
+        load_lbds(stage_index, lbd_count);
+        lbd_columns = stage.columns || 0;
+
+        //lbd_index = 0;
+        //next_lbd(0);
     }
 
     function load_tix() {
@@ -95,8 +104,42 @@ window.main = function() {
             });
     }
 
-    key('left', () => next_lbd(-1));
-    key('right', () => next_lbd(1));
+    var redraw2 = _.debounce(function() { canvas.redraw() }, 100);
+
+    function load_lbds(stage_index, lbd_count) {
+        _.each(lbds, destroy_lbd);
+        lbds = [];
+
+        function load_lbd(lbd_index) {
+            var url = `data/cdi/stg${pad(stage_index, 2)}/m${pad(lbd_index, 3)}.lbd`;
+            fetch(url)
+                .then(r => r.arrayBuffer())
+                .then(buf => {
+                    var f = new BinaryReader(buf);
+                    lbd = new LBD;
+                    lbd.read(f);
+                    lbds[lbd_index] = lbd;
+                    redraw2();
+                });
+        }
+
+        for (var lbd_index = 0; lbd_index < lbd_count; ++lbd_index) {
+            lbds.push(null);
+            load_lbd(lbd_index);
+        }
+    }
+
+    key('left', () => {
+        lbd_columns = Math.max(1, lbd_columns - 1);
+        $('#debug').text('columns: ' + lbd_columns);
+        canvas.redraw();
+    });
+
+    key('right', () => {
+        lbd_columns = lbd_columns + 1;
+        $('#debug').text('columns: ' + lbd_columns);
+        canvas.redraw();
+    });
 
     key('pageup', () => next_stage(1));
     key('pagedown', () => next_stage(-1));
@@ -112,9 +155,7 @@ window.main = function() {
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
         pgm.uniform3fv('view_pos', env.camera.view_pos);
         pgm.uniform3fv('light_pos', env.light_pos);
-
-        if (tix && tix.texture)
-            pgm.uniformSampler2D('s_tix', tix.texture);
+        pgm.uniformSampler2D('s_tix', tix.texture);
 
         bind_vertex_buffer(obj.vertex_buffer);
 
@@ -130,10 +171,7 @@ window.main = function() {
         gl.drawArrays(gl.TRIANGLES, 0, obj.vertex_count);
     }
 
-    var visible_count = 0;
-    var tpages = new Set;
-
-    function draw_tile(env, tile, tx, ty) {
+    function draw_tile(env, lbd, tile, tx, ty) {
         if (!tile.visible)
             return;
 
@@ -149,33 +187,48 @@ window.main = function() {
         var tmd_object = lbd.tmd.objects[tmd_index];
         draw_tmd_object(env, tmd_object, mat);
 
-        ++visible_count;
-        tmd_object.prims.forEach(prim => {
-            if (prim.mode & (1<<2))
-                tpages.add(prim.tpage);
-        });
-
         if (tile.extra) {
-            draw_tile(env, tile.extra, tx, ty);
+            draw_tile(env, lbd, tile.extra, tx, ty);
         }
     }
 
-    function draw_lbd(env, lbd) {
+    function draw_lbd(env, lbd, lx, ly) {
         if (!lbd)
             return;
 
         if (!tix.texture)
             return;
 
-        visible_count = 0;
-        tpages.clear();
-
         for (var ty = 0; ty < 20; ++ty) {
             for (var tx = 0; tx < 20; ++tx) {
                 var tile_index = 20*ty + tx;
                 var tile = lbd.tiles[tile_index];
-                draw_tile(env, tile, tx, ty);
+                draw_tile(env, lbd, tile, 20.1*lx + tx, 20.1* ly + ty);
             }
+        }
+    }
+
+    function draw_lbds(env) {
+        if (!stages) return;
+        var stage = stages[stage_index];
+
+        var layout = stage.layout || 'v';
+        //var columns = stage.columns || 0;
+        var columns = lbd_columns;
+
+        for (var lbd_index = 0; lbd_index < lbd_count; ++lbd_index) {
+            var lbd = lbds[lbd_index];
+            if (!lbd) continue;
+
+            var lx = 0;
+            var ly = 0;
+            if (layout == 'h') {
+                var lx = lbd_index % columns;
+                var ly = Math.floor(lbd_index / columns);
+                lx -= (ly % 2) * 0.5;
+            }
+
+            draw_lbd(env, lbd, lx, ly);
         }
     }
 
@@ -192,7 +245,7 @@ window.main = function() {
 
     // canvas drawing
     canvas.draw = function() {
-        draw_lbd(this, lbd);
+        draw_lbds(this);
     };
 
     canvas.light_pos = vec3.fromValues(100, 100, 100);

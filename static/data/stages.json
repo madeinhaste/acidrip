@@ -2,71 +2,97 @@
     {
         "id": 0,
         "name": "Bright Moon Cottage",
-        "nlbds": 5
+        "nlbds": 5,
+        "layout": "v"
     },
     {
         "id": 1,
         "name": "Pit & Temple",
-        "nlbds": 6
+        "nlbds": 6,
+        "layout": "h",
+        "columns": 3
     },
     {
         "id": 2,
         "name": "Kyoto",
-        "nlbds": 36
+        "nlbds": 36,
+        "layout": "h",
+        "columns": 6
     },
     {
         "id": 3,
         "name": "The Natural World",
-        "nlbds": 256
+        "nlbds": 256,
+        "layout": "h",
+        "columns": 16
     },
     {
         "id": 4,
         "name": "Happy Town",
-        "nlbds": 30
+        "nlbds": 30,
+        "layout": "h",
+        "columns": 6
     },
     {
         "id": 5,
         "name": "Violence District",
-        "nlbds": 30
+        "nlbds": 30,
+        "layout": "h",
+        "columns": 5
     },
     {
         "id": 6,
         "name": "Moonlight Tower",
-        "nlbds": 6
+        "nlbds": 6,
+        "layout": "v"
     },
     {
         "id": 7,
         "name": "Temple Dojo",
-        "nlbds": 5
+        "nlbds": 5,
+        "layout": "h",
+        "columns": 5
     },
     {
         "id": 8,
         "name": "Flesh Tunnels",
-        "nlbds": 3
+        "nlbds": 3,
+        "layout": "h",
+        "columns": 1
     },
     {
         "id": 9,
         "name": "Clockwork Machines",
-        "nlbds": 2
+        "nlbds": 2,
+        "layout": "h",
+        "columns": 1
     },
     {
         "id": 10,
         "name": "Long Hallway",
-        "nlbds": 3
+        "nlbds": 3,
+        "layout": "h",
+        "columns": 3
     },
     {
         "id": 11,
         "name": "Sun Faces Heave",
-        "nlbds": 12
+        "nlbds": 12,
+        "layout": "h",
+        "columns": 4
     },
     {
         "id": 12,
         "name": "Black Space",
-        "nlbds": 20
+        "nlbds": 20,
+        "layout": "h",
+        "columns": 5
     },
     {
         "id": 13,
         "name": "Monument Park",
-        "nlbds": 4
+        "nlbds": 4,
+        "layout": "h",
+        "columns": 2
     }
 ]
