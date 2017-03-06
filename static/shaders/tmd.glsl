@@ -46,6 +46,7 @@ vec3 face_normal(vec3 pos) {
     return normalize(cross(fdx, fdy));
 }
 
+// FIXME lighting calc should be in vertex shader
 void main() {
     vec3 N = face_normal(v_position);
     vec3 V = normalize(v_view);

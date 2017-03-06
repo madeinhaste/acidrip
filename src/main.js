@@ -50,7 +50,7 @@ window.main = function() {
             });
     }
 
-    var $tix_canvas = $(tix.canvas).addClass('texture');
+    var $tix_canvas = $(tix.canvas).addClass('texture').hide();
     $('#main').append($tix_canvas);
 
     function destroy_lbd(lbd) {
@@ -179,9 +179,6 @@ window.main = function() {
         }
     }
 
-    //key('left', () => load_next_object(-1));
-    //key('right', () => load_next_object(1));
-
     key('t', () => {
         $('canvas.texture').toggle();
     });
@@ -200,100 +197,4 @@ window.main = function() {
 
     canvas.light_pos = vec3.fromValues(100, 100, 100);
     canvas.light_pos_v = vec3.create();
-
-    
-}
-
-window.tix_main = function() {
-    fetch('data/cdi/stg00/texa.tix')
-            .then(r => r.arrayBuffer())
-            .then(buf => {
-                var f = new BinaryReader(buf);
-                var tix = new TIX;
-                tix.read(f);
-                display_tix2(tix);
-            });
-
-    function display_tix(tix) {
-        var atlas = document.createElement('canvas');
-        atlas.width = 2048;
-        atlas.height = 512;
-        var atlas_ctx = atlas.getContext('2d');
-        atlas_ctx.fillStyle = 'black';
-        atlas_ctx.fillRect(0, 0, 2048, 512);
-
-        var tims = [];
-
-        _.each(tix.groups, (grp, grp_idx) => {
-            var $grp = $(`<h3>Group ${grp_idx}</h3>`);
-            //$('#main').append($grp);
-            grp.forEach(tim => {
-                var c = document.createElement('canvas');
-                var img = tim.image;
-                c.width = img.width;
-                c.height = img.height;
-                var ctx = c.getContext('2d');
-                ctx.putImageData(img, 0, 0);
-
-                ctx.fillStyle = '#fff';
-                ctx.shadowOffsetY = 1;
-                ctx.shadowOffsetX = 1;
-                ctx.shadowColor = '#000';
-                ctx.shadowBlur = 1;
-                ctx.font = '16px Roboto';
-
-                var text = [
-                    `${c.width}x${c.height}`,
-                    `tpage: ${tim.tpage}`,
-                    `org: ${tim.xorg},${tim.yorg}`
-                ]
-
-                var ty = 20;
-                var th = 22;
-                text.forEach(line => {
-                    ctx.fillText(line, 6, ty);
-                    ty += th;
-                });
-
-                tims.push(tim);
-
-                //$('#main').append(c);
-
-                // add to atlas
-            });
-        });
-
-        var $detail = $('<pre>');
-        var detail = [];
-
-        $('#main')
-            .append('<h3>VRAM</h3>')
-            .append(atlas)
-            .append($detail);
-
-        key('space', function() {
-            var tim = tims.pop();
-            if (!tim) {
-                atlas_ctx.fillStyle = 'red';
-                atlas_ctx.fillRect(0, 0, 640, 16);
-                return;
-            }
-
-            // tpage -> x,y
-            let tpage = tim.tpage;
-            let tpx = (tpage & 15) << 7;
-            let tpy = (((tpage & 16) >> 4) << 8) +
-                      (((tpage & 0x800) >> 11) << 9);
-            
-            atlas_ctx.putImageData(tim.image, 2*tim.xorg, tim.yorg);
-
-            detail.push(`${2*tim.xorg},${tim.yorg} tp:${tim.tpage} ${tpx},${tpy}`);
-            $detail.text(detail.join('\n'));
-        });
-    }
-
-    function display_tix2(tix) {
-        tix.update_canvas();
-        $('#main').append(tix.canvas);
-    }
 }
