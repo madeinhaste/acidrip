@@ -123,18 +123,24 @@ export class TMDObject {
             out.setUint8(dp + 18, colb, true);
             out.setUint8(dp + 19, cola, true);
 
-            var texu = prim.t[2*index + 0];
-            var texv = prim.t[2*index + 1];
-            var texw = prim.tpage;
-            if (!has_bit(prim.mode, 2)) {
-                texu = texv = 0;
-                texw = 255;
+            var texu = 0;
+            var texv = 0;
+
+            if (has_bit(prim.mode, 2)) {
+                var texu = prim.t[2*index + 0];
+                var texv = prim.t[2*index + 1];
+
+                var tpage = prim.tpage;
+                var tpx = (tpage & 15) << 7;
+                var tpy = (((tpage & 16) >> 4) << 8) +
+                          (((tpage & 0x800) >> 11) << 9);
+
+                texu += tpx;
+                texv += tpy;
             }
 
-            out.setUint8(dp + 20, texu, true);
-            out.setUint8(dp + 21, texv, true);
-            out.setUint8(dp + 22, texw, true);
-            out.setUint8(dp + 23, 0, true);
+            out.setUint16(dp + 20, texu, true);
+            out.setUint16(dp + 22, texv, true);
 
             dp += vertex_size;
             console.assert(dp <= vertex_array.length);

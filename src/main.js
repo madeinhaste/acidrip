@@ -1,4 +1,3 @@
-import {TextureSet} from './TextureSet';
 import {BinaryReader, modulo} from './utils';
 import {TIX} from './tix';
 import {LBD} from './lbd';
@@ -21,7 +20,7 @@ window.main = function() {
     var lbd_index = 0;
     var lbd_count = 0;
     var lbd = null;
-    var tix = new TextureSet;
+    var tix = new TIX;
 
     fetch('data/stages.json')
         .then(r => r.json())
@@ -36,15 +35,16 @@ window.main = function() {
         lbd_count = stage.nlbds;
         lbd_index = 0;
         next_lbd(0);
+        load_tix();
+    }
 
+    function load_tix() {
         var tixname = `stg${pad(stage_index, 2)}/texa`;
-        tix.load_tix(tixname)
-            .then(() => {
-                // rotate
-                for (var i = 1; i < 31; i += 2)
-                    tix.load_tix_page(i+1, tixname, i, 0, 2, 0);
-
-                tix.draw_labels();
+        fetch(`data/cdi/${tixname}.tix`)
+            .then(r => r.arrayBuffer())
+            .then(buf => {
+                var f = new BinaryReader(buf);
+                tix.read(f);
                 tix.update_texture();
                 canvas.redraw();
             });
@@ -121,7 +121,7 @@ window.main = function() {
         pgm.vertexAttribPointer('position', 3, gl.SHORT, false, 24, 0);
         pgm.vertexAttribPointer('normal', 3, gl.SHORT, true, 24, 8);
         pgm.vertexAttribPointer('color', 3, gl.UNSIGNED_BYTE, true, 24, 16);
-        pgm.vertexAttribPointer('texcoord', 3, gl.UNSIGNED_BYTE, false, 24, 20);
+        pgm.vertexAttribPointer('texcoord', 2, gl.UNSIGNED_SHORT, false, 24, 20);
 
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);

@@ -9,7 +9,7 @@ varying vec3 v_light;
 varying vec3 v_view;
 varying vec3 v_position;
 varying vec3 v_normal;
-varying vec3 v_texcoord;
+varying vec2 v_texcoord;
 
 uniform mat4 m_vp;
 uniform mat4 m_obj;
@@ -31,19 +31,7 @@ void main() {
     v_position = P;
     v_color = color;
     v_normal = normal;
-
-    if (texcoord.z < 32.0) {
-        v_texcoord.x = 8.0 * fract(texcoord.z / 8.0);
-        v_texcoord.y = floor(texcoord.z / 8.0);
-
-        v_texcoord.x += 0.0 + (texcoord.x / 256.0);
-        v_texcoord.y += 0.0 + (texcoord.y / 256.0);
-
-        v_texcoord.xy *= vec2(1.0/8.0, 1.0/4.0);
-        v_texcoord.z = texcoord.z;
-    } else {
-        v_texcoord.xyz = vec3(0.0);
-    }
+    v_texcoord = vec2(texcoord.x / 2048.0, texcoord.y / 512.0);
 
     gl_Position = m_vp * vec4(P, 1.0);
 }
@@ -78,14 +66,11 @@ void main() {
 
     gl_FragColor = vec4(C, 1.0);
     //gl_FragColor.rgb = (v_normal + 1.0)*0.5;
-    if (v_texcoord.z > 0.0) {
+
+    if (v_texcoord.x > 0.0) {
         //gl_FragColor.rgb = vec3(v_texcoord.xyz);
         vec4 Ct = texture2D(s_tix, v_texcoord.xy);
         if (Ct.a < 0.5) discard;
         gl_FragColor.rgb *= Ct.rgb;
-    }
-
-    if (abs(v_texcoord.z - 26.0) < 0.01) {
-        //gl_FragColor.rgb = vec3(1, 0, 1);
     }
 }

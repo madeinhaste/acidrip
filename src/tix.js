@@ -6,13 +6,19 @@ export class TIX {
 
         this.canvas = document.createElement('canvas');
         this.canvas.width = 2048;
-        this.canvas.height = 1024;
+        this.canvas.height = 512;
         this.ctx = this.canvas.getContext('2d');
 
         this.texture = null;
     }
 
+    clear() {
+        this.groups = [];
+    }
+
     read(f) {
+        this.clear();
+
         var ngroups = f.read_u32();
         for (var group_idx = 0; group_idx < ngroups; ++group_idx) {
             var group_top = f.read_u32();
@@ -40,6 +46,10 @@ export class TIX {
     update_canvas() {
         this.ctx.clearRect(0, 0, 2048, 512);
         _.flatten(this.groups).forEach(tim => {
+
+            console.assert(tim.xorg + tim.image.width <= this.canvas.width);
+            console.assert(tim.yorg + tim.image.height <= this.canvas.height);
+
             this.ctx.putImageData(tim.image, 2*tim.xorg, tim.yorg);
         });
     }
