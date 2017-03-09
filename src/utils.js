@@ -119,6 +119,15 @@ export class BinaryReader {
     }
 }
 
+export function fetch_binary(url) {
+    return fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => {
+            var f = new BinaryReader(ab);
+            return f;
+        });
+}
+
 export function fourcc(word) {
     console.assert(word.length == 4);
     var v = 0;
@@ -129,3 +138,9 @@ export function fourcc(word) {
     return v;
 }
 
+export function padl(x, n, c='0') {
+    var s = ''+x;
+    while (s.length < n)
+        s = c + s;
+    return s;
+}

@@ -99,4 +99,31 @@ export class Player {
             count: verts.length/3
         };
     }
+
+    check_keys() {
+        var dirty = false;
+
+        if (key.isPressed('left')) {
+            this.rotate(-0.1);
+            dirty = true;
+        }
+
+        if (key.isPressed('right')) {
+            this.rotate( 0.1);
+            dirty = true;
+        }
+
+        if (key.isPressed('up')) {
+            this.advance(0.1);
+            dirty = true;
+        }
+
+        if (key.isPressed('down')) {
+            this.advance(-0.1);
+            dirty = true;
+        }
+
+        return dirty;
+    }
+
 }
