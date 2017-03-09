@@ -21,8 +21,7 @@ uniform vec4 color;
 
 // simple.vertex //
 void main() {
-    float scale = 100.0;
-    gl_Position = mvp * vec4(scale * position, 1.0);
+    gl_Position = mvp * vec4(position, 1.0);
 }
 
 // simple.fragment //

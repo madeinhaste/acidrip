@@ -28,9 +28,10 @@ export class TMDObject {
         this.norms = [];
         this.prims = [];
 
-        this.vertex_data = null;
+        this.vertex_array = null;
         this.vertex_buffer = null;
         this.vertex_count = 0;
+        this.vertex_start = 0;
     }
 
     read(f, top) {

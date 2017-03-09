@@ -1,9 +1,14 @@
 import {TMD} from './tmd';
+import {MOM} from './mom';
+import {fourcc} from './utils';
+
+const FOURCC_MML = fourcc('MML ');
 
 export class LBD {
     constructor() {
         this.tiles = [];
         this.tmd = null;
+        this.moms = [];
     }
 
     read(f) {
@@ -26,6 +31,25 @@ export class LBD {
         f.seek(tmd_ptr);
         this.tmd = new TMD;
         this.tmd.read(f);
+
+        // moms
+        if (!mml_len)
+            return;
+
+        f.seek(mml_ptr);
+        var magic = f.read_u32();
+        console.assert(magic == FOURCC_MML);
+
+        var mom_count = f.read_u32();
+        for (var i = 0; i < mom_count; ++i) {
+            var mom_ptr = mml_ptr + f.read_u32();
+            f.push();
+            f.seek(mom_ptr);
+            var mom = new MOM;
+            mom.read(f);
+            this.moms.push(mom);
+            f.pop();
+        }
     }
 }
 

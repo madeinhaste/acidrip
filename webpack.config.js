@@ -2,6 +2,7 @@ module.exports = {
     context: __dirname + '/src',
     entry: {
         main: './main.js',
+        mom_main: './mom-main.js',
     },
     output: {
         path: __dirname + '/dist',
@@ -14,7 +15,7 @@ module.exports = {
             //{ test: /\.(sass|scss)$/, use: ['style-loader', 'css-loader', 'sass-loader'] },
         ],
     },
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     devServer: {
         contentBase: [
             __dirname + '/static',

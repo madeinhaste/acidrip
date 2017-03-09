@@ -18,6 +18,8 @@ uniform vec3 view_pos;
 uniform vec3 light_pos;
 uniform sampler2D s_tix;
 
+uniform vec3 debug_color;
+
 // tmd.vertex //
 void main() {
     vec3 P = position;
@@ -55,23 +57,23 @@ void main() {
 
     float NdotL = max(0.0, dot(N, L));
     float NdotH = max(0.0, dot(N, H));
-    //float Ka = 0.7;
-    //float Ka = 0.25;
     float Ka = 0.45;
     float Kd = Ka  + NdotL;
     float Ks = pow(NdotH, 30.0);
 
     vec3 Cd = v_color;
-    vec3 Cs = vec3(0.5);
-    vec3 C = Kd * Cd + Ks * Cs;
-
-    gl_FragColor = vec4(C, 1.0);
-    //gl_FragColor.rgb = (v_normal + 1.0)*0.5;
+    //vec3 Cs = vec3(0.5);
+    //vec3 C = Kd * Cd + Ks * Cs;
+    vec3 C = Kd * Cd;
 
     if (v_texcoord.x > 0.0) {
-        //gl_FragColor.rgb = vec3(v_texcoord.xyz);
         vec4 Ct = texture2D(s_tix, v_texcoord.xy);
         if (Ct.a < 0.5) discard;
-        gl_FragColor.rgb *= Ct.rgb;
+        gl_FragColor.rgb = C * Ct.rgb;
+    } else {
+        gl_FragColor.rgb = C;
     }
+
+    gl_FragColor.rgb += debug_color;
+    gl_FragColor.a = 1.0;
 }

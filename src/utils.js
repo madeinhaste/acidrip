@@ -118,3 +118,14 @@ export class BinaryReader {
         this.sp = this.sp_stack.pop();
     }
 }
+
+export function fourcc(word) {
+    console.assert(word.length == 4);
+    var v = 0;
+    for (var i = 3; i >= 0; --i) {
+        v = v << 8;
+        v = v | word.charCodeAt(i);
+    }
+    return v;
+}
+
