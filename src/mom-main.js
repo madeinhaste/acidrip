@@ -110,9 +110,15 @@ window.mom_main = function() {
     var redraw2 = _.debounce(function() { canvas.redraw() }, 100);
 
     function check_done() {
-        for (var i = 0; i < lbd_count; ++i)
+        for (var i = 0; i < lbd_count; ++i) {
             if (!lbds[i])
                 return;
+
+            _.each(lbd.moms, (mom, j) => {
+                mom.lbd_index = i;
+                mom.mom_index = j;
+            });
+        }
         
         console.log('DONE');
 
@@ -287,7 +293,8 @@ window.mom_main = function() {
         var scale = 0.1;
 
         var t = _.map(mom.tmd.objects, obj => obj.prims.length).join(',');
-        $('#debug').text('objs: ' + t);
+        $('#debug').text(
+            `lbd:${mom.lbd_index}  mom:${mom.mom_index}  objs: ${t}`);
 
         _.each(mom.tmd.objects, (obj, idx) => {
             mat4.identity(mat);

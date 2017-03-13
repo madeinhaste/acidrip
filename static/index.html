@@ -2,16 +2,18 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>LBD Viewer</title>
+        <title>(lsd:10/3)</title>
 
         <style>
             body {
-                background-color: #222;
+                background-color: #000;
                 color: #eee;
             }
 
             canvas.webgl {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                opacity: 0;
+                transition: opacity 7s linear;
             }
 
             canvas.texture {
@@ -32,8 +34,13 @@
 
     <body>
         <div id="main">
-            <div id="debug">Debug</div>
+            <div id="debug"></div>
         </div>
+
+        <audio autoplay loop>
+            <source src="sounds/3ww.opus" type="audio/ogg">
+            <source src="sounds/3ww.mp3" type="audio/mp3">
+        </audio>
 
         <script src="scripts/vendor/jquery-3.1.1.min.js"></script>
         <script src="scripts/vendor/lodash.min.js"></script>
@@ -41,4 +48,5 @@
 
         <script src="assets/main.bundle.js"></script>
         <script> $(main); </script>
+    </body>
 </html>

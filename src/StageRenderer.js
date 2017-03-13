@@ -1,5 +1,6 @@
 import {vec3, mat4} from 'gl-matrix';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
+import {RAD_PER_DEG} from './utils';
 
 var trn = vec3.create();
 var mat = mat4.create();
@@ -57,11 +58,20 @@ export class StageRenderer {
         this.stage = null;
         this.buffers = [];
         this.pgm = null;
+        this.highlight_tile = null;
+
+        this.corpse = [];
     }
 
     setup(env, stage) {
         this.env = env;
         this.stage = stage;
+
+        if (stage.id == 5) {
+            var lbd = stage.lbds[8];
+            var mom = lbd.moms[0];
+            this.corpse = mom.tmd.objects;
+        }
     }
 
     get_vertex_buffer(obj) {
@@ -131,10 +141,6 @@ export class StageRenderer {
 
         const scale = 0.5/1024;
         mat4.identity(mat);
-
-        tx += 0.5;
-        ty += 0.5;
-
         mat4.translate(mat, mat, [trn[0] + tx, trn[2] - h, trn[1] - ty]);
         mat4.scale(mat, mat, [scale, scale, scale]);
         mat4.rotateY(mat, mat, -0.5 * tile.direction * Math.PI);
@@ -142,7 +148,8 @@ export class StageRenderer {
         var tmd_index = tile.tmd_index;
         var tmd_object = tmd.objects[tmd_index];
 
-        //pgm.uniform3f('debug_color', (tile.collision & 0x80) ? 1 : 0, 0, 0);
+        //this.pgm.uniform3f('debug_color', (tile.unknown & 0xff) ? 1 : 0, 0, 0);
+        //this.pgm.uniform3f('debug_color', (tile === this.highlight_tile) ? 1 : 0, 0, 0);
         this.draw_tmd_object2(tmd_object, mat);
 
         if (tile.extra) {
@@ -155,7 +162,7 @@ export class StageRenderer {
         for (var ty = 0; ty < 20; ++ty) {
             for (var tx = 0; tx < 20; ++tx) {
                 var tile = lbd.tiles[tile_index++];
-                this.draw_tile(lbd.tmd, tile, trn, tx, ty);
+                this.draw_tile(lbd.tmd, tile, trn, tx + 0.5, ty + 0.5);
             }
         }
     }
@@ -177,6 +184,9 @@ export class StageRenderer {
         pgm.uniform3fv('view_pos', env.camera.view_pos);
         pgm.uniform3fv('light_pos', env.light_pos);
         pgm.uniformSampler2D('s_tix', tix.texture);    // XXX
+        pgm.uniform1f('ambient', 0.75);
+        pgm.uniform3f('fog_color', 0.05, 0, 0.15);
+        pgm.uniform2f('fog_range', 10, 40);
 
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
@@ -191,6 +201,17 @@ export class StageRenderer {
             stage.get_lbd_translation(trn, lbd_index);
             this.draw_lbd(lbd, trn);
         }
+
+        this.corpse.forEach(obj => {
+            mat4.identity(mat);
+            var scale = 0.8 / 1024;
+            mat4.translate(mat, mat, [50.49, 0.0, -38.5]);
+            mat4.scale(mat, mat, [scale, scale, scale]);
+            mat4.rotateY(mat, mat, RAD_PER_DEG * 170);
+            mat4.rotateZ(mat, mat, RAD_PER_DEG * -65);
+            pgm.uniform1f('ambient', 2.50);
+            this.draw_tmd_object2(obj, mat);
+        });
 
         //console.log('buffer_switch_count:', buffer_switch_count);
     }

@@ -55,17 +55,20 @@ export class LBD {
 
 export class LBDTile {
     constructor() {
-        this.visible = false;
+        this.visible = 0;
         this.tmd_index = 0;
         this.collision = 0;
         this.direction = 0;
         this.height = 0;
         this.extra = null;
+        this.unknown = 0;
     }
 
     read(f) {
-        this.visible = (f.read_u8() !== 0);
-        f.skip(1);
+        //this.visible = (f.read_u8() !== 0);
+        this.visible = f.read_u8();
+        //f.skip(1);
+        this.unknown = f.read_u8();
         this.tmd_index = f.read_u8();
         f.skip(1);
         this.collision = f.read_u8();

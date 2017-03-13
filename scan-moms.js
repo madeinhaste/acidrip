@@ -17,16 +17,38 @@ function load_lbd2(filepath) {
     return lbd;
 }
 
+function hex(x) {
+    return pad(x.toString(16), 8, '0');
+}
+
 function load_lbd(filepath) {
     var buf = fs.readFileSync(filepath);
     var f = new BinaryReader(buf.buffer);
 
+    console.log(filepath);
+
     f.skip(8);
+    //console.log(hex(f.read_u32()));
+    //console.log(hex(f.read_u32()));
+
     var tmd_ptr = f.read_u32() + 24;
     var tmd_len = f.read_u32();
     var mml_ptr = f.read_u32();
     var mml_len = f.read_u32();
+
+    //console.log(hex(f.read_u32()));
+    //console.log(hex(f.read_u32()));
     f.skip(8);
+
+    var n_extra = 0;
+    for (var i = 0; i < 400; ++i) {
+        f.skip(8);
+        var has_extra = !!(f.read_u16());
+        if (has_extra) ++n_extra;
+        f.read_u16();
+    }
+
+    console.log((tmd_ptr - f.sp)/12, n_extra);
 
     function fourcc(word) {
         console.assert(word.length == 4);
@@ -39,7 +61,7 @@ function load_lbd(filepath) {
     }
 
     if (mml_len) {
-        console.log(filepath);
+        //console.log(filepath);
         f.seek(mml_ptr);
 
         var magic = f.read_u32();
@@ -63,7 +85,7 @@ function load_lbd(filepath) {
                     f.seek(tmd_ptr);
                     var tmd = new TMD;
                     tmd.read(f);
-                    console.log(`  ${i}: ${tmd.objects.length}  (${mom_header_len})`);
+                    //console.log(`  ${i}: ${tmd.objects.length}  (${mom_header_len})`);
                 f.pop();
             f.pop();
         }
@@ -73,7 +95,9 @@ function load_lbd(filepath) {
 var prefix = './static/data/cdi/stg05';
 for (var i = 0; i < 30; ++i) {
     var suffix = `m${pad(i, 3, '0')}.lbd`;
-    var lbd = load_lbd2(`${prefix}/${suffix}`);
+    var lbd = load_lbd(`${prefix}/${suffix}`);
+
+    /*
     if (lbd.moms.length) {
         console.log(suffix);
         for (var j = 0; j < lbd.moms.length; ++j) {
@@ -81,4 +105,7 @@ for (var i = 0; i < 30; ++i) {
             console.log(`  ${j}: ${mom.tmd.objects.length}  (${mom.header.length})`);
         }
     }
+    */
 }
+
+//var lbd = load_lbd('./static/data/cdi/stg05/m010.lbd');

@@ -19,6 +19,9 @@ uniform vec3 light_pos;
 uniform sampler2D s_tix;
 
 uniform vec3 debug_color;
+uniform float ambient;
+uniform vec2 fog_range;
+uniform vec3 fog_color;
 
 // tmd.vertex //
 void main() {
@@ -28,8 +31,8 @@ void main() {
 
     P = (m_obj * vec4(P, 1.0)).xyz;
 
-    v_view = normalize(view_pos - P);
-    v_light = normalize(light_pos - P);
+    v_view = (view_pos - P);
+    v_light = (light_pos - P);
     v_position = P;
     v_color = color;
     v_normal = normal;
@@ -57,8 +60,9 @@ void main() {
 
     float NdotL = max(0.0, dot(N, L));
     float NdotH = max(0.0, dot(N, H));
-    float Ka = 0.45;
-    float Kd = Ka  + NdotL;
+    //float Ka = 0.45;
+    float Ka = ambient;
+    float Kd = Ka + 2.0*NdotL;
     float Ks = pow(NdotH, 30.0);
 
     vec3 Cd = v_color;
@@ -76,4 +80,15 @@ void main() {
 
     gl_FragColor.rgb += debug_color;
     gl_FragColor.a = 1.0;
+
+    // fog:
+    {
+        float fog_start = fog_range[0];
+        float fog_end = fog_range[1];
+        float d = length(v_view);
+        float fog_factor = (fog_end - d) / (fog_end - fog_start);
+        fog_factor = clamp(fog_factor, 0.0, 1.0);
+        gl_FragColor.rgb = mix(fog_color, gl_FragColor.rgb, fog_factor);
+        //gl_FragColor.r = fog_factor;
+    }
 }

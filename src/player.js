@@ -8,6 +8,7 @@ export class Player {
         this.mat = mat4.create();
         this.geom = null;
         this.pgm = get_program('simple');
+        this.stage = null;
     }
 
     move(x, y, z) {
@@ -22,8 +23,22 @@ export class Player {
 
     advance(dist) {
         var theta = -0.5 * Math.PI * this.dir;
-        this.pos[0] += dist * Math.cos(theta);
-        this.pos[1] += dist * Math.sin(theta);
+        var x = this.pos[0] + dist * Math.cos(theta);
+        var y = this.pos[1] + dist * Math.sin(theta);
+
+        if (this.stage) {
+            var tile = this.stage.get_tile(x, y);
+            if (!tile)
+                return;
+
+            if (tile.collision == 0)
+                return;
+
+            //if (tile.collision & 0x80) return;
+        }
+
+        this.pos[0] = x;
+        this.pos[1] = y;
     }
 
     draw(env) {
@@ -54,7 +69,7 @@ export class Player {
         var tz = this.pos[2];
         var scale = 0.5/1024;
         mat4.identity(mat);
-        mat4.translate(mat, mat, [tx-9.5, -tz, 9.5-ty]);
+        mat4.translate(mat, mat, [tx, -tz, -ty]);
         mat4.scale(mat, mat, [scale, scale, scale]);
         mat4.rotateY(mat, mat, -0.5 * this.dir * Math.PI);
     }
@@ -103,23 +118,30 @@ export class Player {
     check_keys() {
         var dirty = false;
 
+        var rotate_speed = 0.02;
+        var advance_speed = 0.1;
+
+        if (key.shift) {
+            advance_speed *= 3;
+        }
+
         if (key.isPressed('left')) {
-            this.rotate(-0.1);
+            this.rotate(-rotate_speed);
             dirty = true;
         }
 
         if (key.isPressed('right')) {
-            this.rotate( 0.1);
+            this.rotate(rotate_speed);
             dirty = true;
         }
 
         if (key.isPressed('up')) {
-            this.advance(0.1);
+            this.advance(advance_speed);
             dirty = true;
         }
 
         if (key.isPressed('down')) {
-            this.advance(-0.1);
+            this.advance(-advance_speed);
             dirty = true;
         }
 
