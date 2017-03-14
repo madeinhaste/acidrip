@@ -131,3 +131,6 @@ window.main = function() {
     }
     */
 }
+
+import {mom_main} from './mom-main';
+window.mom_main = mom_main;

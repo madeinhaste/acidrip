@@ -4,8 +4,9 @@ import {LBD} from './lbd';
 import {Canvas3D} from './Canvas3D';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {vec3, mat4} from 'gl-matrix';
+import {TOD} from './tod';
 
-window.mom_main = function() {
+export function mom_main() {
     var canvas = new Canvas3D({
         antialias: false,
         extensions: [ 'OES_standard_derivatives' ],
@@ -27,6 +28,9 @@ window.mom_main = function() {
     var lbds = [];
     var moms = [];
     var mom_index = 0;
+
+    var tods = [];
+    var tod_index = 0;
 
     var tix = new TIX;
 
@@ -57,7 +61,6 @@ window.mom_main = function() {
                 var f = new BinaryReader(buf);
                 tix.read(f);
                 tix.update_texture();
-                canvas.redraw();
             });
     }
 
@@ -101,13 +104,9 @@ window.mom_main = function() {
                 lbd = new LBD;
                 lbd.read(f);
 
-                canvas.redraw();
-
                 $('#debug').text(`${stages[stage_index].name} m${pad(lbd_index, 3)}`);
             });
     }
-
-    var redraw2 = _.debounce(function() { canvas.redraw() }, 100);
 
     function check_done() {
         for (var i = 0; i < lbd_count; ++i) {
@@ -147,7 +146,6 @@ window.mom_main = function() {
                     lbd = new LBD;
                     lbd.read(f);
                     lbds[lbd_index] = lbd;
-                    redraw2();
                     check_done();
                 });
         }
@@ -160,12 +158,12 @@ window.mom_main = function() {
 
     key('left', () => {
         mom_index = Math.max(0, mom_index - 1);
-        canvas.redraw();
+        tods = [];
     });
 
     key('right', () => {
         mom_index = Math.min(moms.length - 1, mom_index + 1);
-        canvas.redraw();
+        tods = [];
     });
 
     var mat = mat4.create();
@@ -187,6 +185,10 @@ window.mom_main = function() {
         pgm.uniform3fv('view_pos', env.camera.view_pos);
         pgm.uniform3fv('light_pos', env.light_pos);
         pgm.uniformSampler2D('s_tix', tix.texture);
+
+        pgm.uniform1f('ambient', 1.75);
+        pgm.uniform3f('fog_color', 0.05, 0, 0.15);
+        pgm.uniform2f('fog_range', 1000, 4000);
 
         bind_vertex_buffer(tmd_vertex.buffer);
         pgm.vertexAttribPointer('position', 3, gl.SHORT, false, 24, 0);
@@ -259,30 +261,6 @@ window.mom_main = function() {
         }
     }
 
-    function draw_lbds(env) {
-        if (!stages) return;
-        var stage = stages[stage_index];
-
-        var layout = stage.layout || 'v';
-        //var columns = stage.columns || 0;
-        var columns = lbd_columns;
-
-        for (var lbd_index = 0; lbd_index < lbd_count; ++lbd_index) {
-            var lbd = lbds[lbd_index];
-            if (!lbd) continue;
-
-            var lx = 0;
-            var ly = 0;
-            if (layout == 'h') {
-                var lx = lbd_index % columns;
-                var ly = Math.floor(lbd_index / columns);
-                lx -= (ly % 2) * 0.5;
-            }
-
-            draw_lbd(env, lbd, lx, ly);
-        }
-    }
-
     function draw_moms(env) {
         var mom = moms[mom_index];
         if (!mom) return;
@@ -292,51 +270,121 @@ window.mom_main = function() {
         //var scale = 0.5/1024;
         var scale = 0.1;
 
-        var t = _.map(mom.tmd.objects, obj => obj.prims.length).join(',');
-        $('#debug').text(
-            `lbd:${mom.lbd_index}  mom:${mom.mom_index}  objs: ${t}`);
+        var tod = tods[tod_index];
 
-        _.each(mom.tmd.objects, (obj, idx) => {
-            mat4.identity(mat);
-            //mat4.translate(mat, mat, [100*idx, 0, 0]);
-            mat4.scale(mat, mat, [scale, scale, scale]);
-            draw_tmd_object(env, obj, mat);
-        });
+        if (!tod) {
+
+            var t = _.map(mom.tmd.objects, obj => obj.prims.length).join(',');
+            $('#debug').text(
+                `lbd:${mom.lbd_index}  mom:${mom.mom_index}  objs: ${t}`);
+
+            _.each(mom.tmd.objects, (obj, idx) => {
+                mat4.identity(mat);
+                //mat4.translate(mat, mat, [100*idx, 0, 0]);
+                mat4.scale(mat, mat, [scale, scale, scale]);
+                draw_tmd_object(env, obj, mat);
+            });
+
+        } else {
+            // draw tod
+            var now = performance.now();
+
+            var t = Math.floor(now * 60 / 1000);
+            t = Math.floor(t / tod.resolution);
+            var frame_number = t % tod.nframes;
+
+            $('#debug').text(`${frame_number}`);
+
+            tod.objects.forEach(obj => {
+                if (!obj.visible)
+                    return;
+
+                var tmd_object = mom.tmd.objects[obj.tmd_data_id - 1];
+                var obj_mat = obj.mats[frame_number];
+                //console.log(obj_mat);
+
+                mat4.identity(mat);
+                mat4.scale(mat, mat, [scale, scale, scale]);
+                mat4.multiply(mat, mat, obj_mat);
+                draw_tmd_object(env, tmd_object, mat);
+            });
+        }
     }
 
     key('t', () => {
         $('canvas.texture').toggle();
     });
 
+    key('space', () => {
+        if (tods.length)
+            tod_index = (tod_index + 1) % tods.length;
+        else
+            tod_index = 0;
+    });
+
+
     key('m', () => {
         var mom = moms[mom_index];
         var hdr = mom.header;
         var f = new BinaryReader(hdr.buffer);
-        var line = [];
-        while (f.sp < f.end) {
-            var word = f.read_u32();
-            line.push(pad(word.toString(16), 8));
-            //line.push(pad(word, 8, ' '));
-            if (line.length == 8) {
-                console.log(line.join(' '));
-                line = [];
+
+        /*
+        function dump_header() {
+            var line = [];
+            while (f.sp < f.end) {
+                var word = f.read_u32();
+                line.push(pad(word.toString(16), 8));
+                //line.push(pad(word, 8, ' '));
+                if (line.length == 8) {
+                    console.log(line.join(' '));
+                    line = [];
+                }
             }
+            console.log('end');
         }
-        console.log('end');
+
+        dump_header();
+        return;
+        */
+
+        var tod_count = f.read_u32();
+        tods = [];
+        for (var i = 0; i < tod_count; ++i) {
+            var tod_ptr = f.read_u32();
+            f.push();
+            f.seek(tod_ptr - 4);
+            var tod = new TOD;
+            tod.read(f);
+            tods.push(tod);
+            f.pop();
+        }
+        tod_index = 0;
     });
 
     // attach canvas and events
     $(canvas.el).addClass('webgl');
     $('#main').prepend(canvas.el);
 
-    // connect window resize event
-    window.onresize = function() { canvas.redraw() };
-
     // canvas drawing
-    canvas.draw = function() {
-        //draw_lbds(this);
+    canvas._draw = function() {
+        this.check_resize();
+        this.update_camera();
+
+        gl.clearColor(0, 0, 0, 1);
+        gl.clearColor(0.05, 0, 0.15, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        canvas.draw_grid();
+
         draw_moms(this);
     };
+
+    function animate() {
+        requestAnimationFrame(animate);
+        canvas._draw();
+    }
+    animate();
+
 
     canvas.light_pos = vec3.fromValues(100, 100, 100);
     canvas.light_pos_v = vec3.create();
