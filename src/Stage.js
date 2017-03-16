@@ -96,7 +96,7 @@ export class Stage {
                     });
             });
 
-            load_tix(this.id, 'c')
+            load_tix(this.id, 'a')
                 .then(tix => {
                     this.tix = tix;
                     // XXX maybe move texture mgmt to renderer
