@@ -1,5 +1,6 @@
 import {vec3, mat4} from 'gl-matrix';
 import {get_program, new_vertex_buffer, bind_vertex_buffer} from './webgl';
+import {gamepad_get} from './gamepad';
 
 const GAMEPAD_LEFT = 14;
 const GAMEPAD_RIGHT = 15;
@@ -129,11 +130,13 @@ export class Player {
         };
     }
 
-    check_keys(gamepad) {
+    check_keys() {
         var dirty = false;
 
         var rotate_speed = 1/64;
         var advance_speed = 0.1;
+
+        var gamepad = gamepad_get();
 
         if (key.shift ||
             gamepad_pressed(gamepad, GAMEPAD_A))

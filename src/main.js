@@ -4,10 +4,9 @@ import {Player} from './player';
 import {StageRenderer} from './StageRenderer';
 import {load_stages} from './Stage';
 import {padl} from './utils';
+import {gamepad_init} from './gamepad';
 
 window.main = function() {
-    var gamepad_index = -1;
-
     var canvas = new Canvas3D({
         antialias: false,
         extensions: [ 'OES_standard_derivatives' ],
@@ -51,9 +50,8 @@ window.main = function() {
     
     function animate() {
         requestAnimationFrame(animate);
-        if (player.check_keys(get_gamepad()))
+        if (player.check_keys())
             canvas.redraw();
-        scan_gamepad();
     }
     animate();
 
@@ -134,57 +132,7 @@ window.main = function() {
     }
     */
 
-    function init_gamepads() {
-        window.addEventListener('gamepadconnected', function() {
-            $('#debug').text('gamepad connected');
-            check_gamepads();
-        });
-
-        window.addEventListener('gamepaddisconnected', function() {
-            $('#debug').text('gamepad disconnected');
-            gamepad_index = -1;
-        });
-
-        function check_gamepads() {
-            _.each(navigator.getGamepads(), gp => {
-                if (gp) {
-                    console.log('gpii:', gp);
-                    gamepad_index = gp.index;
-                    return false;
-                }
-            });
-            if (gamepad_index < 0)
-                return;
-        }
-
-        check_gamepads();
-    }
-    init_gamepads();
-
-    function get_gamepad() {
-        if (gamepad_index < 0)
-            return null;
-        else
-            return navigator.getGamepads()[gamepad_index];
-    }
-
-    function scan_gamepad() {
-        var gamepad = get_gamepad();
-        if (!gamepad) return;
-
-        var buttons = [];
-        _.each(gamepad.buttons, (b, i) => {
-            if (b.pressed) {
-                buttons.push(i);
-            }
-        });
-        buttons = buttons.join(', ');
-        if (buttons.length == 0)
-            return;
-
-        $('#debug').text(buttons);
-        console.log(buttons);
-    }
+    gamepad_init();
 }
 
 import {mom_main} from './mom-main';
