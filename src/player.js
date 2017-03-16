@@ -1,20 +1,5 @@
 import {vec3, mat4} from 'gl-matrix';
 import {get_program, new_vertex_buffer, bind_vertex_buffer} from './webgl';
-import {gamepad_get} from './gamepad';
-
-const GAMEPAD_LEFT = 14;
-const GAMEPAD_RIGHT = 15;
-const GAMEPAD_UP = 12;
-const GAMEPAD_DOWN = 13;
-
-const GAMEPAD_Y = 3;
-const GAMEPAD_B = 1;
-const GAMEPAD_A = 0;
-const GAMEPAD_X = 2;
-
-function gamepad_pressed(gp, i) {
-    return gp && gp.buttons[i].pressed;
-}
 
 export class Player {
     constructor() {
@@ -136,38 +121,26 @@ export class Player {
         var rotate_speed = 1/64;
         var advance_speed = 0.1;
 
-        var gamepad = gamepad_get();
-
-        if (key.shift ||
-            gamepad_pressed(gamepad, GAMEPAD_A))
-        {
+        if (key.shift) {
             advance_speed *= 3;
         }
 
-        if (key.isPressed('left') ||
-            gamepad_pressed(gamepad, GAMEPAD_LEFT))
-        {
+        if (key.isPressed('left')) {
             this.rotate(-rotate_speed);
             dirty = true;
         }
 
-        if (key.isPressed('right') ||
-            gamepad_pressed(gamepad, GAMEPAD_RIGHT))
-        {
+        if (key.isPressed('right')) {
             this.rotate(rotate_speed);
             dirty = true;
         }
 
-        if (key.isPressed('up') ||
-            gamepad_pressed(gamepad, GAMEPAD_UP))
-        {
+        if (key.isPressed('up')) {
             this.advance(advance_speed);
             dirty = true;
         }
 
-        if (key.isPressed('down') ||
-            gamepad_pressed(gamepad, GAMEPAD_DOWN))
-        {
+        if (key.isPressed('down')) {
             this.advance(-advance_speed);
             dirty = true;
         }

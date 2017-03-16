@@ -59,8 +59,8 @@ export class StageRenderer {
         this.buffers = [];
         this.pgm = null;
         this.highlight_tile = null;
-
         this.corpse = [];
+        this.fog_enabled = true;
     }
 
     setup(env, stage) {
@@ -185,8 +185,13 @@ export class StageRenderer {
         pgm.uniform3fv('light_pos', env.light_pos);
         pgm.uniformSampler2D('s_tix', tix.texture);    // XXX
         pgm.uniform1f('ambient', 0.75);
-        pgm.uniform3f('fog_color', 0.05, 0, 0.15);
-        pgm.uniform2f('fog_range', 10, 40);
+
+        if (this.fog_enabled) {
+            pgm.uniform3f('fog_color', 0.05, 0, 0.15);
+            pgm.uniform2f('fog_range', 10, 40);
+        } else {
+            pgm.uniform2f('fog_range', 10000, 10000);
+        }
 
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);

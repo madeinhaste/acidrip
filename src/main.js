@@ -4,7 +4,6 @@ import {Player} from './player';
 import {StageRenderer} from './StageRenderer';
 import {load_stages} from './Stage';
 import {padl} from './utils';
-import {gamepad_init} from './gamepad';
 
 window.main = function() {
     var canvas = new Canvas3D({
@@ -23,17 +22,15 @@ window.main = function() {
     $('#main').prepend(canvas.el);
 
     var player = new Player;
-    //player.pos[0] = 59.0;
-    //player.pos[1] = 100.5;
     player.pos[0] = 50.5;
     player.pos[1] = 41.0;
-    //player.pos[2] = 0.9;
     player.pos[2] = 0.5;
-    //player.dir = -1;
     player.dir = 1;
 
     var stages = [];
     var stage_renderer = new StageRenderer;
+    stage_renderer.fog_enabled = false;
+
     var stage_id = 5;
     var stage = null;
 
@@ -64,8 +61,13 @@ window.main = function() {
 
     var player_cam = {
         enabled: true,
+        aerial: false,
+
         pos: vec3.create(),
         dir: quat.create(),
+        
+        aerial_pos: vec3.create(),
+        aerial_dir: quat.create(),
 
         update() {
             this.pos[0] = player.pos[0];
@@ -74,11 +76,26 @@ window.main = function() {
 
             quat.identity(this.dir);
             quat.rotateY(this.dir, this.dir, -0.5 * (player.dir + 1) * Math.PI);
+
+            // aerial camera
+            vec3.copy(this.aerial_pos, this.pos);
+            this.aerial_pos[1] += 50;
+
+            quat.identity(this.aerial_dir);
+            quat.rotateX(this.aerial_dir, this.aerial_dir, -0.5 * Math.PI);
+
         }
     };
 
     key('p', function() {
         player_cam.enabled = !player_cam.enabled;
+        //stage_renderer.fog_enabled = player_cam.enabled;
+        canvas.redraw();
+    });
+
+    key('a', function() {
+        player_cam.aerial = !player_cam.aerial;
+        //stage_renderer.fog_enabled = !player_cam.aerial;
         canvas.redraw();
     });
 
@@ -86,53 +103,29 @@ window.main = function() {
     canvas._draw = function() {
         this.check_resize();
         this.update_camera();
+
         gl.clearColor(0.05, 0, 0.15, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        /*
-        if (stage) {
-            var tile = stage.get_tile(
-                player.pos[0],
-                player.pos[1]);
-
-            stage_renderer.highlight_tile = tile;
-            if (tile) {
-                var txt = `c:${hex(tile.collision)} h:${hex(tile.height)}`;
-                if (tile.extra) {
-                    tile = tile.extra;
-                    txt += `  (c:${hex(tile.collision)} h:${hex(tile.height)})`;
-                }
-                $('#debug').text(txt);
-
-                //player.pos[2] = tile.collision;
-            } else {
-                $('#debug').text('');
-            }
-        }
-        */
-
         if (player_cam.enabled) {
             player_cam.update();
-            this.camera.update_quat(player_cam.pos, player_cam.dir);
+
+            if (player_cam.aerial) {
+                this.camera.update_quat(player_cam.aerial_pos, player_cam.aerial_dir);
+            } else {
+                this.camera.update_quat(player_cam.pos, player_cam.dir);
+            }
         } else {
-            this.draw_grid();
+            //this.draw_grid();
         }
 
+        this.draw_grid();
         stage_renderer.draw(this);
         player.draw(this);
 
         //$('#debug').text(`${player.pos[0].toFixed(3)},${player.pos[1].toFixed(3)}`);
     };
 
-    /*
-    function setup_tix_viewer() {
-        var $tix_canvas = $(tix.canvas).addClass('texture').hide();
-        $('#main').append($tix_canvas);
-        key('t', () => { $('canvas.texture').toggle(); });
-    }
-    */
-
-    gamepad_init();
 }
 
 import {mom_main} from './mom-main';

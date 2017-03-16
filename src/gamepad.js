@@ -1,3 +1,7 @@
+// if gamepad.held('left') blah...
+// if gamepad.tap('left')
+// gamepad.value('left')
+
 var gamepad_index = -1;
 
 export function gamepad_init() {
@@ -38,3 +42,20 @@ export function gamepad_get() {
 
     return navigator.getGamepads()[gamepad_index];
 }
+
+const GAMEPAD_LEFT = 14;
+const GAMEPAD_RIGHT = 15;
+const GAMEPAD_UP = 12;
+const GAMEPAD_DOWN = 13;
+
+const GAMEPAD_Y = 3;
+const GAMEPAD_B = 1;
+const GAMEPAD_A = 0;
+const GAMEPAD_X = 2;
+
+var wait_for_not_pressed = false;
+
+function gamepad_pressed(gp, i) {
+    return gp && gp.buttons[i].pressed;
+}
+
