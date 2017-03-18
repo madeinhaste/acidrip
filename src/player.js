@@ -9,6 +9,7 @@ export class Player {
         this.geom = null;
         this.pgm = get_program('simple');
         this.stage = null;
+        this.collide = true;
     }
 
     move(x, y, z) {
@@ -26,8 +27,8 @@ export class Player {
         var x = this.pos[0] + dist * Math.cos(theta);
         var y = this.pos[1] + dist * Math.sin(theta);
 
-        if (this.stage) {
-            var tile = this.stage.get_tile(x, y);
+        if (this.collide && this.stage) {
+            var [tile, h] = this.stage.get_tile(x, y);
             if (!tile)
                 return;
 
@@ -35,10 +36,19 @@ export class Player {
                 return;
 
             //if (tile.collision & 0x80) return;
+        } else {
+            var h = 0.0;
         }
+
+        var PLAYER_HEIGHT = 0.5;
 
         this.pos[0] = x;
         this.pos[1] = y;
+        this.pos[2] = h + PLAYER_HEIGHT;
+        console.log(this.pos[2]);
+
+        // XXX
+        // raycast fract(xy) onto tile
     }
 
     draw(env) {
@@ -69,7 +79,7 @@ export class Player {
         var tz = this.pos[2];
         var scale = 0.5/1024;
         mat4.identity(mat);
-        mat4.translate(mat, mat, [tx, -tz, -ty]);
+        mat4.translate(mat, mat, [tx, tz, -ty]);
         mat4.scale(mat, mat, [scale, scale, scale]);
         mat4.rotateY(mat, mat, -0.5 * this.dir * Math.PI);
     }
@@ -125,6 +135,10 @@ export class Player {
             advance_speed *= 3;
         }
 
+        if (key.control) {
+            advance_speed *= 0.1;
+        }
+
         if (key.isPressed('left')) {
             this.rotate(-rotate_speed);
             dirty = true;
@@ -147,5 +161,4 @@ export class Player {
 
         return dirty;
     }
-
 }

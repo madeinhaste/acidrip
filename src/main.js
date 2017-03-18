@@ -3,7 +3,7 @@ import {vec3, mat4, quat} from 'gl-matrix';
 import {Player} from './player';
 import {StageRenderer} from './StageRenderer';
 import {load_stages} from './Stage';
-import {padl} from './utils';
+import {padl, save_file_as} from './utils';
 
 window.main = function() {
     var canvas = new Canvas3D({
@@ -23,7 +23,9 @@ window.main = function() {
 
     var player = new Player;
     player.pos[0] = 50.5;
+    //player.pos[0] = 40.5;
     player.pos[1] = 41.0;
+    //player.pos[1] = 41.5;
     player.pos[2] = 0.5;
     player.dir = 1;
 
@@ -42,6 +44,29 @@ window.main = function() {
             player.stage = stage;
             canvas.redraw();
             $(canvas.el).css({opacity: 1});
+
+            /*
+            var vdata = [];
+            var total = 0;
+            stage.lbds.forEach(lbd => {
+                lbd.tmd.objects.forEach(obj => {
+                    var b = obj.vertex_array;
+                    vdata.push(b);
+                    total += b.length;
+                });
+            });
+
+            console.log('vertex-total:', total);
+            var out = new Uint8Array(total);
+            var dp = 0;
+            vdata.forEach(b => {
+                out.set(b, dp);
+                dp += b.length;
+            });
+
+            save_file_as(out, 'vertex-data.bin');
+            console.log(dp);
+            */
         });
     });
     
@@ -68,6 +93,7 @@ window.main = function() {
         
         aerial_pos: vec3.create(),
         aerial_dir: quat.create(),
+        aerial_height: 50,
 
         update() {
             this.pos[0] = player.pos[0];
@@ -79,7 +105,7 @@ window.main = function() {
 
             // aerial camera
             vec3.copy(this.aerial_pos, this.pos);
-            this.aerial_pos[1] += 50;
+            this.aerial_pos[1] += this.aerial_height;
 
             quat.identity(this.aerial_dir);
             quat.rotateX(this.aerial_dir, this.aerial_dir, -0.5 * Math.PI);
@@ -98,6 +124,22 @@ window.main = function() {
         //stage_renderer.fog_enabled = !player_cam.aerial;
         canvas.redraw();
     });
+
+    key('c', function() {
+        player.collide = !player.collide;
+        canvas.redraw();
+    });
+
+    document.addEventListener('mousewheel', e => {
+        if (!player_cam.aerial)
+            return;
+
+        var dy = e.wheelDelta / 120;
+        player_cam.aerial_height += 5 * dy;
+        player_cam.aerial_height = Math.max(10, player_cam.aerial_height);
+        canvas.redraw();
+    });
+
 
     // canvas drawing
     canvas._draw = function() {
