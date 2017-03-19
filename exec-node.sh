@@ -1,2 +1,2 @@
 #!/bin/sh
-./node_modules/.bin/rollup -f es $1 |node
+./node_modules/.bin/rollup --config rollup.config.js $1 |node
