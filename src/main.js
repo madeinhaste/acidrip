@@ -1,9 +1,9 @@
 import {Canvas3D} from './Canvas3D';
 import {vec3, mat4, quat} from 'gl-matrix';
 import {Player} from './player';
-import {StageRenderer} from './StageRenderer';
-import {load_stages} from './Stage';
 import {padl, save_file_as} from './utils';
+import {Level} from './Level';
+
 
 window.main = function() {
     var canvas = new Canvas3D({
@@ -22,52 +22,14 @@ window.main = function() {
     $('#main').prepend(canvas.el);
 
     var player = new Player;
-    player.pos[0] = 50.5;
-    //player.pos[0] = 40.5;
-    player.pos[1] = 41.0;
-    //player.pos[1] = 41.5;
-    player.pos[2] = 0.5;
+    vec3.set(player.pos, 60.5, 40.0, 0.5);
     player.dir = 1;
+    player.collide = true;
 
-    var stages = [];
-    var stage_renderer = new StageRenderer;
-    stage_renderer.fog_enabled = false;
-
-    var stage_id = 5;
-    var stage = null;
-
-    load_stages().then(d => {
-        stages = d;
-        stage = stages[stage_id];
-        stage.load().then(() => {
-            stage_renderer.setup(canvas, stage);
-            player.stage = stage;
-            canvas.redraw();
-            $(canvas.el).css({opacity: 1});
-
-            /*
-            var vdata = [];
-            var total = 0;
-            stage.lbds.forEach(lbd => {
-                lbd.tmd.objects.forEach(obj => {
-                    var b = obj.vertex_array;
-                    vdata.push(b);
-                    total += b.length;
-                });
-            });
-
-            console.log('vertex-total:', total);
-            var out = new Uint8Array(total);
-            var dp = 0;
-            vdata.forEach(b => {
-                out.set(b, dp);
-                dp += b.length;
-            });
-
-            save_file_as(out, 'vertex-data.bin');
-            console.log(dp);
-            */
-        });
+    var level = new Level;
+    level.load(5).then(() => {
+        player.level = level;
+        canvas.redraw()
     });
     
     function animate() {
@@ -115,13 +77,13 @@ window.main = function() {
 
     key('p', function() {
         player_cam.enabled = !player_cam.enabled;
-        //stage_renderer.fog_enabled = player_cam.enabled;
+        //level.fog_enabled = player_cam.enabled;
         canvas.redraw();
     });
 
     key('a', function() {
         player_cam.aerial = !player_cam.aerial;
-        //stage_renderer.fog_enabled = !player_cam.aerial;
+        //level.fog_enabled = !player_cam.aerial;
         canvas.redraw();
     });
 
@@ -162,11 +124,15 @@ window.main = function() {
         }
 
         this.draw_grid();
-        stage_renderer.draw(this);
+        level.draw(this);
         player.draw(this);
 
         //$('#debug').text(`${player.pos[0].toFixed(3)},${player.pos[1].toFixed(3)}`);
     };
+
+    key('d', function() {
+        console.log('POS:', player.pos);
+    });
 
 }
 

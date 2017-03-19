@@ -8,7 +8,7 @@ export class Player {
         this.mat = mat4.create();
         this.geom = null;
         this.pgm = get_program('simple');
-        this.stage = null;
+        this.level = null;
         this.collide = true;
     }
 
@@ -26,26 +26,25 @@ export class Player {
         var theta = -0.5 * Math.PI * this.dir;
         var x = this.pos[0] + dist * Math.cos(theta);
         var y = this.pos[1] + dist * Math.sin(theta);
+        var z = this.pos[2];
 
-        if (this.collide && this.stage) {
-            var [tile, h] = this.stage.get_tile(x, y);
-            if (!tile)
-                return;
-
-            if (tile.collision == 0)
-                return;
-
+        if (this.collide && this.level) {
+            var [tile, h] = this.level.get_tile(x, y, z);
+            if (!tile) return;
+            if (tile.collision == 0) return;
             //if (tile.collision & 0x80) return;
         } else {
             var h = 0.0;
         }
+
+        h = Math.max(h, 0);
 
         var PLAYER_HEIGHT = 0.5;
 
         this.pos[0] = x;
         this.pos[1] = y;
         this.pos[2] = h + PLAYER_HEIGHT;
-        console.log(this.pos[2]);
+        //console.log(this.pos[2]);
 
         // XXX
         // raycast fract(xy) onto tile
