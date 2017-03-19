@@ -35,7 +35,7 @@ function load_tix2(stage_id, tex_id='a') {
         });
 }
 
-export function fetch_msgpack(url) {
+function fetch_msgpack(url) {
     return fetch(url)
         .then(r => r.arrayBuffer())
         .then(ab => {
@@ -188,13 +188,6 @@ export class Stage {
 }
 
 export function load_stages() {
-    fetch_msgpack('data/cdi/stg05/level05.msgpack')
-        .then(o => {
-            console.log(o);
-        });
-
-
-
     return fetch('data/stages.json')
         .then(r => r.json())
         .then(data => {
