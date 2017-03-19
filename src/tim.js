@@ -163,33 +163,40 @@ export class TIM {
         }
 
         if (bpp == 16) {
+            var raw = new Uint16Array(n_pixels);
             for (var i = 0; i < n_pixels; ++i) {
                 var bits = f.read_u16();
                 write_pixel(bits);
+                raw[i] = bits;
             }
         }
         else if (bpp == 8) {
+            var raw = new Uint8Array(n_pixels);
             for (var i = 0; i < n_pixels; ++i) {
                 var s = f.read_u8();
                 var bits = clut[s];
                 write_pixel(bits);
+                raw[i] = s;
             }
         }
         else if (bpp == 4) {
             var n = n_pixels / 2;
+            var raw = new Uint8Array(n);
             for (var i = 0; i < n; ++i) {
                 var s = f.read_u8();
                 var bits0 = clut[s & 0xf];
                 var bits1 = clut[(s>>4) & 0xf];
                 write_pixel(bits0);
                 write_pixel(bits1);
+                raw[i] = s;
             }
         }
 
         this.image = image;
         this.tpage = tpage;
         this.bpp = bpp;
-        this.clut = has_clut;
+        this.clut = has_clut ? clut : null;
+        this.data = raw;
         this.xorg = img.xorg;
         this.yorg = img.yorg;
     }

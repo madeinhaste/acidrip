@@ -1,8 +1,9 @@
-import {TIX} from './tix';
+import {TIX, TIX2} from './tix';
 import {LBD} from './lbd';
 import {fetch_binary, padl, modulo} from './utils';
 import {test_ray_triangle} from './raycast';
 import {vec3} from 'gl-matrix';
+import msgpack from 'msgpack-lite';
 
 function load_lbd(stage_id, lbd_index) {
     var url = `data/cdi/stg${padl(stage_id, 2)}/m${padl(lbd_index, 3)}.lbd`;
@@ -21,6 +22,25 @@ function load_tix(stage_id, tex_id='a') {
             var tix = new TIX;
             tix.read(f);
             return tix;
+        });
+}
+
+function load_tix2(stage_id, tex_id='a') {
+    var url = `data/cdi/stg${padl(stage_id, 2)}/tex${tex_id}.msgpack`;
+    return fetch_msgpack(url)
+        .then(ob => {
+            var tix = new TIX2;
+            tix.read(ob);
+            return tix;
+        });
+}
+
+export function fetch_msgpack(url) {
+    return fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => {
+            var b = new Uint8Array(ab);
+            return msgpack.decode(b);
         });
 }
 
@@ -102,7 +122,7 @@ export class Stage {
                     });
             });
 
-            load_tix(this.id, 'a')
+            load_tix2(this.id, 'a')
                 .then(tix => {
                     this.tix = tix;
                     // XXX maybe move texture mgmt to renderer
@@ -168,6 +188,13 @@ export class Stage {
 }
 
 export function load_stages() {
+    fetch_msgpack('data/cdi/stg05/level05.msgpack')
+        .then(o => {
+            console.log(o);
+        });
+
+
+
     return fetch('data/stages.json')
         .then(r => r.json())
         .then(data => {
