@@ -148,7 +148,7 @@ export class Level {
 
         var pgm = this.pgm;
         pgm.vertexAttribPointer('position', 3, gl.SHORT, false, 24, 0);
-        pgm.vertexAttribPointer('normal', 3, gl.SHORT, true, 24, 8);
+        pgm.vertexAttribPointer('normal', 3, gl.SHORT, false, 24, 8);
         pgm.vertexAttribPointer('color', 3, gl.UNSIGNED_BYTE, true, 24, 16);
         pgm.vertexAttribPointer('texcoord', 2, gl.UNSIGNED_SHORT, false, 24, 20);
 

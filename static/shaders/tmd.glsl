@@ -29,13 +29,18 @@ void main() {
     P.y = -P.y;
     P.z = -P.z;
 
+    vec3 N = normal / 4096.0;
+    N.y = -N.y;
+    N.z = -N.z;
+
     P = (m_obj * vec4(P, 1.0)).xyz;
+    N = (m_obj * vec4(N, 1.0)).xyz;
 
     v_view = (view_pos - P);
     v_light = (light_pos - P);
     v_position = P;
     v_color = color;
-    v_normal = normal;
+    v_normal = normalize(N);
     v_texcoord = vec2(texcoord.x / 2048.0, texcoord.y / 512.0);
 
     gl_Position = m_vp * vec4(P, 1.0);
@@ -78,7 +83,7 @@ void main() {
         gl_FragColor.rgb = C;
     }
 
-    gl_FragColor.rgb += debug_color;
+    //gl_FragColor.rgb += debug_color;
     gl_FragColor.a = 1.0;
 
     // fog:

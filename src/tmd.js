@@ -1,3 +1,5 @@
+import {vec3} from 'gl-matrix';
+
 export class TMD {
     constructor() {
         this.objects = [];
@@ -105,7 +107,7 @@ export class TMDObject {
             } else {
                 var nx = 0;
                 var ny = 0;
-                var nz = 32767;
+                var nz = 0;
             }
 
             out.setInt16(dp + 8, nx, true);
@@ -158,6 +160,83 @@ export class TMDObject {
                 write_vertex(prim, 3);
             }
         });
+
+        // fix normals
+        (function() {
+            var dv = new DataView(vertex_array.buffer);
+            var dp = 0;
+            var dp_end = vertex_array.buffer.byteLength;
+
+            var v0 = vec3.create();
+            var v1 = vec3.create();
+            var v2 = vec3.create();
+
+            var n0 = vec3.create();
+            var n1 = vec3.create();
+            var n2 = vec3.create();
+
+            var stride = vertex_size;
+
+            function load_v(out, ptr) {
+                out[0] = dv.getInt16(ptr + 0, true);
+                out[1] = dv.getInt16(ptr + 2, true);
+                out[2] = dv.getInt16(ptr + 4, true);
+            }
+
+            function clamp_i16(x) {
+                x = Math.round(x);
+                const MIN = -32768;
+                const MAX = 32767;
+                if (x < MIN) x = MIN;
+                else if (x > MAX) x = MAX;
+                return x;
+            }
+
+            function save_v(src, ptr) {
+                var x = clamp_i16(src[0]);
+                var y = clamp_i16(src[1]);
+                var z = clamp_i16(src[2]);
+
+                dv.setInt16(ptr + 0, x, true);
+                dv.setInt16(ptr + 2, y, true);
+                dv.setInt16(ptr + 4, z, true);
+
+                console.log(x, y, z);
+            }
+
+            function is_zero(src) {
+                const EPS = 0.001;
+                return vec3.sqrLen(src) < EPS;
+            }
+
+            while (dp < dp_end) {
+                load_v(v0, dp + 0);
+                load_v(v1, dp + stride);
+                load_v(v2, dp + 2*stride);
+
+                load_v(n0, dp + 8);
+                load_v(n1, dp + stride + 8);
+                load_v(n2, dp + 2*stride + 8);
+
+                if (is_zero(n0) && is_zero(n1) && is_zero(n2)) {
+                    // calculate face normal
+                    vec3.sub(n1, v1, v0);
+                    vec3.sub(n2, v2, v0);
+                    vec3.normalize(n1, n1);
+                    vec3.normalize(n2, n2);
+                    vec3.cross(n0, n1, n2);
+                    vec3.normalize(n0, n0);
+                    vec3.scale(n0, n0, 4096);
+
+                    save_v(n0, dp + 8);
+                    save_v(n0, dp + stride + 8);
+                    save_v(n0, dp + 2*stride + 8);
+                }
+
+                // next triangle
+                dp += 3*stride;
+            }
+        }());
     }
 }
 
