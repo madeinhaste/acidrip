@@ -55,7 +55,7 @@ export class TOD {
         var pt = PACKET_TYPES[packet_type];
         seen_packet_types.add(pt);
 
-        console.log(`      obj: ${object_id}  type: ${pt}  flag: ${packet_flag}`);
+        //console.log(`      obj: ${object_id}  type: ${pt}  flag: ${packet_flag}`);
 
         var skip = false;
 
@@ -63,7 +63,7 @@ export class TOD {
             case PACKET_ATTRIBUTE:
                 var mask = f.read_u32();
                 var value = f.read_u32();
-                console.log(`        mask: ${hex(mask, 8)}  value: ${hex(value, 8)}`);
+                //console.log(`        mask: ${hex(mask, 8)}  value: ${hex(value, 8)}`);
 
                 if (mask == 0x80000000) {
                     var v = value & mask;
@@ -127,13 +127,13 @@ export class TOD {
                 var obj = this.objects[object_id];
                 obj.update_matrix(frame_number, mat, f_delta);
 
-                console.log(`        ${co.join('  ')}`);
+                //console.log(`        ${co.join('  ')}`);
                 break;
 
             case PACKET_TMD_DATA_ID:
                 var word = f.read_u32();
                 var tmd_data_id = word & 0xffff;
-                console.log(`        tmd-data-id: ${tmd_data_id}`);
+                //console.log(`        tmd-data-id: ${tmd_data_id}`);
 
                 // update object
                 var obj = this.objects[object_id];
@@ -144,7 +144,7 @@ export class TOD {
             case PACKET_PARENT_OBJECT_ID:
                 var word = f.read_u32();
                 var parent_object_id = word & 0xffff;
-                console.log(`        parent-object-id: ${parent_object_id}`);
+                //console.log(`        parent-object-id: ${parent_object_id}`);
                 
                 // update object
                 var obj = this.objects[object_id];
@@ -153,7 +153,7 @@ export class TOD {
                 break;
 
             case PACKET_OBJECT_CONTROL:
-                console.log(`        ${packet_flag ? 'kill' : 'create'}`);
+                //console.log(`        ${packet_flag ? 'kill' : 'create'}`);
                 if (!packet_flag) {
                     // create object
                     console.assert(object_id !== 0);    // check there's no root object
@@ -180,7 +180,7 @@ export class TOD {
         var frame_size = hdr & 0xffff;
         var npackets = hdr >>> 16;
         var frame_number = f.read_u32();
-        console.log(`    frame: ${frame_number}  fsize: ${frame_size}  np: ${npackets}`);
+        //console.log(`    frame: ${frame_number}  fsize: ${frame_size}  np: ${npackets}`);
 
         //f.skip((frame_size - 2) * 4);
 
@@ -202,15 +202,15 @@ export class TOD {
         // setup animation
         this.init(nframes, resolution);
 
-        console.log('TOD:');
-        console.log('  resolution:', resolution);
-        console.log('  nframes:', nframes);
+        //console.log('TOD:');
+        //console.log('  resolution:', resolution);
+        //console.log('  nframes:', nframes);
 
         for (var i = 0; i < nframes; ++i) {
             this.read_frame(f);
         }
 
-        console.log('seen packet types:', Array.from(seen_packet_types).join(', '));
+        //console.log('seen packet types:', Array.from(seen_packet_types).join(', '));
 
         this.finish_animation();
     }
@@ -252,7 +252,7 @@ export class TOD {
             });
         }
 
-        console.log('DONE:', this);
+        //console.log('DONE:', this);
     }
 }
 
@@ -262,7 +262,10 @@ class TODObject {
         this.parent_id = 0;
         this.tmd_data_id = 0;
         this.visible = false;
-        this.mats = _.times(nframes, mat4.create);
+        this.mats = [];
+        for (var i = 0; i < nframes; ++i)
+            this.mats.push(mat4.create());
+        //_.times(nframes, mat4.create);
     }
 
     update_matrix(frame_number, mat, delta) {

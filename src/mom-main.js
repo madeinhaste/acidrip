@@ -4,7 +4,6 @@ import {LBD} from './lbd';
 import {Canvas3D} from './Canvas3D';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {vec3, mat4} from 'gl-matrix';
-import {TOD} from './tod';
 
 export function mom_main() {
     var canvas = new Canvas3D({
@@ -325,8 +324,8 @@ export function mom_main() {
 
     key('m', () => {
         var mom = moms[mom_index];
-        var hdr = mom.header;
-        var f = new BinaryReader(hdr.buffer);
+        //var hdr = mom.header;
+        //var f = new BinaryReader(hdr.buffer);
 
         /*
         function dump_header() {
@@ -347,6 +346,7 @@ export function mom_main() {
         return;
         */
 
+        /*
         var tod_count = f.read_u32();
         tods = [];
         for (var i = 0; i < tod_count; ++i) {
@@ -358,6 +358,9 @@ export function mom_main() {
             tods.push(tod);
             f.pop();
         }
+        */
+
+        tods = mom.tods;
         tod_index = 0;
     });
 

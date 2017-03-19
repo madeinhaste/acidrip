@@ -38,7 +38,7 @@ console.assert(stage.layout == 'h');
 
 var map_w = level.map.w = 10 * (2*stage.columns + 1);
 var map_h = level.map.h = 20 * (stage.nlbds / stage.columns);
-console.log(map_w * map_h);
+console.log('map:', map_w * map_h);
 
 level.map.tiles = new Uint32Array(map_w * map_h);
 
@@ -120,6 +120,51 @@ function add_model(tmd_object) {
     return model_index;
 }
 
+function add_character(mom, lx, ly) {
+    // XXX maybe add lbd_index/tx.ty
+    var ch = {
+        lx: ly,
+        ly: ly,
+        takes: []
+    };
+
+    var tod_models = {};
+    _.each(mom.tmd.objects, (obj, idx) => {
+        tod_models[idx] = add_model(obj);
+    });
+
+    mom.tods.forEach(tod => {
+        var take = {
+            nframes: tod.nframes,
+            resolution: tod.resolution,
+            parts: []
+        };
+
+        tod.objects.forEach(obj => {
+            if (!obj.visible)
+                return;
+
+            var model_index = tod_models[obj.tmd_data_id - 1];
+            var mats = new Float32Array(16 * obj.mats.length);
+            var dp = 0;
+            obj.mats.forEach(mat => {
+                for (var i = 0; i < 16; ++i)
+                    mats[dp++] = mat[i];
+            });
+                
+            var part = {
+                model: model_index,
+                mats: mats
+            };
+            take.parts.push(part);
+        });
+
+        ch.takes.push(take);
+    });
+
+    level.characters.push(ch);
+}
+
 // XXX add dummy tile for zero
 level.tiles = [null];
 
@@ -138,6 +183,11 @@ for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
 
     // model map for this lbd only
     var tile_models = {};
+    _.each(lbd.tmd.objects, (obj, idx) => {
+        var tile_model_index = add_model(obj);
+        tile_models[idx] = tile_model_index;
+    });
+
     _.each(lbd.tmd.objects, (obj, idx) => {
         var tile_model_index = add_model(obj);
         tile_models[idx] = tile_model_index;
@@ -171,6 +221,11 @@ for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
         console.assert(map_index < level.map.tiles.length);
         level.map.tiles[map_index] = add_tile(lbd_tile);
     }
+
+    // add the characters
+    lbd.moms.forEach(mom => {
+        add_character(mom, lx, ly);
+    });
 }
 
 _.each(buffers.buffers, (buf, idx) => {

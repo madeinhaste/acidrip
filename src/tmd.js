@@ -201,7 +201,7 @@ export class TMDObject {
                 dv.setInt16(ptr + 2, y, true);
                 dv.setInt16(ptr + 4, z, true);
 
-                console.log(x, y, z);
+                //console.log(x, y, z);
             }
 
             function is_zero(src) {

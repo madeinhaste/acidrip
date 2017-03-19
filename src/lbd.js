@@ -50,6 +50,8 @@ export class LBD {
             this.moms.push(mom);
             f.pop();
         }
+
+        // XXX can you have an MOM without MML?
     }
 }
 

@@ -34,8 +34,10 @@ window.main = function() {
     
     function animate() {
         requestAnimationFrame(animate);
-        if (player.check_keys())
-            canvas.redraw();
+        // if (player.check_keys())
+        //     canvas.redraw();
+        player.check_keys();
+        canvas.redraw();
     }
     animate();
 

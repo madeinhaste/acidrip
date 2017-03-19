@@ -60,7 +60,7 @@ function tile_to_image(tile) {
     return image;
 }
 
-var trn = vec3.create();
+var anim_mat = mat4.create();
 var mat = mat4.create();
 
 export class Level {
@@ -91,7 +91,7 @@ export class Level {
         return fetch_msgpack(url).then(data => {
             this.initialize(data);
             console.log(url);
-            return this.load_texture();
+            return this.load_texture('a');
         });
     }
 
@@ -179,6 +179,38 @@ export class Level {
         }
     }
 
+    draw_character(ch_index, tx, ty, tz, rotate) {
+        var now = performance.now();
+        var t = Math.floor(now * 60 / 1000);
+
+        var ch = this.characters[ch_index];
+        var take = ch.takes[0];
+
+        //tx = ch.lx;
+        //ty = ch.ly;
+        //tz = 0;
+        //rotate = 0;
+
+        //const scale = 0.5/1024;
+        const scale = 0.75/1024;
+        //const scale = 1/512;
+        mat4.identity(mat);
+        mat4.translate(mat, mat, [tx + 0.5, tz, -ty + 0.5]);
+        mat4.scale(mat, mat, [scale, scale, scale]);
+        mat4.rotateY(mat, mat, -0.5 * rotate * Math.PI);
+
+        take.parts.forEach(part => {
+            var frame = Math.floor((t / take.resolution) % take.nframes);
+            var sp = 16 * frame;
+            for (var i = 0; i < 16; ++i)
+                anim_mat[i] = part.mats[sp + i];
+
+            mat4.multiply(anim_mat, mat, anim_mat);
+            this.draw_model(part.model, anim_mat);
+            //console.log(part.model, part.mats);
+        });
+    }
+
     draw(env) {
         if (!this.ready)
             return;
@@ -220,6 +252,11 @@ export class Level {
                 this.draw_tile(tile_index, tx, ty, 0);
             }
         }
+
+        //this.draw_character(0, 50.49, 0.0, 38.5);
+        pgm.uniform1f('ambient', 2.50);
+        this.draw_character(5, 59.93, 38.0, 0.0, 3);
+        //this.draw_character(10);
 
         /*
         this.corpse.forEach(obj => {
