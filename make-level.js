@@ -42,9 +42,6 @@ console.log(map_w * map_h);
 
 level.map.tiles = new Uint32Array(map_w * map_h);
 
-function add_tile(tile) {
-}
-
 const VERTEX_BUFFER_SIZE = 1 << 20; // 1MB
 const VERTEX_SIZE = 24;
 
@@ -123,6 +120,9 @@ function add_model(tmd_object) {
     return model_index;
 }
 
+// XXX add dummy tile for zero
+level.tiles = [null];
+
 // add all the models and provide a map so i can reference them
 
 for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
@@ -160,8 +160,6 @@ for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
         level.tiles.push(o);
         return tile_index;
     }
-
-    // XXX add dummy tile for zero
 
     console.assert(lbd.tiles.length == 400);
     for (var tile_index = 0; tile_index < 400; ++tile_index) {
