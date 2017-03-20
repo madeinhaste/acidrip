@@ -21,6 +21,8 @@ export default function Camera() {
 
     this.wide = 1024/720;
     this.wide = 1;
+
+    this.ortho = 0;
 }
 Camera.use_frustum = true;
 
@@ -59,14 +61,13 @@ var F = vec3.create();
 var theta = 0.0;
 Camera.prototype.update = function(pos, dir, up) {
     up = up || YUP;
-    var ortho = false;
 
-    if (!ortho) {
+    if (!this.ortho) {
         // projection
         var aspect = this.wide * this.viewport[2] / this.viewport[3];
         my_perspective(this.proj, this.fov * RAD_PER_DEG, aspect, this.near, this.far);
     } else {
-        var z = ortho;
+        var z = this.ortho;
         mat4.ortho(this.proj, -z, z, -z, z, -this.far, -this.near);
     }
 
@@ -97,7 +98,14 @@ Camera.prototype.update = function(pos, dir, up) {
 Camera.prototype.update_quat = function(pos, rot) {
     // projection
     var aspect = this.viewport[2] / this.viewport[3];
-    my_perspective(this.proj, this.fov * RAD_PER_DEG, aspect, this.near, this.far);
+    if (!this.ortho) {
+        my_perspective(this.proj, this.fov * RAD_PER_DEG, aspect, this.near, this.far);
+    } else {
+        var y = this.ortho;
+        var x = aspect * y;
+        //mat4.ortho(this.proj, -z, z, -z, z, -this.far, -this.near);
+        mat4.ortho(this.proj, -x, x, -y, y, 1, 1000);
+    }
 
     // create a view matrix with a look-at
     mat4.fromRotationTranslation(this.view, rot, pos);

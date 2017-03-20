@@ -45,7 +45,7 @@ window.main = function() {
         //     canvas.redraw();
         player.check_keys();
         update_ghost();
-        canvas.redraw();
+        canvas._draw();
     }
     animate();
 
@@ -59,6 +59,7 @@ window.main = function() {
     var player_cam = {
         enabled: true,
         aerial: false,
+        ortho: false,
 
         pos: vec3.create(),
         dir: quat.create(),
@@ -88,7 +89,6 @@ window.main = function() {
     key('p', function() {
         player_cam.enabled = !player_cam.enabled;
         //level.fog_enabled = player_cam.enabled;
-        canvas.redraw();
     });
 
     key('a', function() {
@@ -96,12 +96,15 @@ window.main = function() {
         player_cam.aerial_pos[0] = player.pos[0];
         player_cam.aerial_pos[2] = -player.pos[1];
         level.fog_enabled = !player_cam.aerial;
-        canvas.redraw();
     });
+
+    key('o', function() {
+        player_cam.ortho = !player_cam.ortho;
+    });
+
 
     key('c', function() {
         player.collide = !player.collide;
-        canvas.redraw();
     });
 
 
@@ -188,11 +191,14 @@ window.main = function() {
             player_cam.update();
 
             if (player_cam.aerial) {
+                this.camera.ortho = player_cam.ortho ? (0.5*player_cam.aerial_pos[1] - 10) : 0;
                 this.camera.update_quat(player_cam.aerial_pos, player_cam.aerial_dir);
             } else {
+                this.camera.ortho = 0;
                 this.camera.update_quat(player_cam.pos, player_cam.dir);
             }
         } else {
+            this.camera.ortho = 0;
             //this.draw_grid();
         }
 
