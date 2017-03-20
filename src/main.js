@@ -5,9 +5,30 @@ import {padl, save_file_as, get_event_offset, lerp} from './utils';
 import {Level} from './Level';
 import {PickRay} from './PickRay';
 import copy_to_clipboard from 'copy-to-clipboard';
+import {Howl} from 'howler';
 
+function get_sound(path, loop) {
+    var base_url = 'sounds/' + path;
+    var exts = ['ogg', 'm4a', 'mp3'];
+    var src = _.map(exts, function(ext) { return base_url + '.' + ext });
+    return new Howl({
+        src: src,
+        loop: loop
+    });
+}
 
 window.main = function() {
+    var sounds = {
+        intro: get_sound('3ww_intro', true),
+        howl1: get_sound('howl1', false),
+        howl2: get_sound('howl2', false),
+        brass1: get_sound('brass1', false),
+        brass2: get_sound('brass2', false),
+        pool1: get_sound('pool1', true),
+        pool2: get_sound('pool2', true),
+    };
+    sounds.intro.play();
+
     var canvas = new Canvas3D({
         antialias: false,
         extensions: [ 'OES_standard_derivatives' ],
@@ -32,6 +53,40 @@ window.main = function() {
     //vec3.set(player.pos, 80.2591323852539, 95.85198974609375, 0.5)
     player.dir = 1;
     player.collide = true;
+
+    player.on_leave_area = function(area) {
+        console.log('leave area', area);
+
+        if (area == 0) {
+            sounds.intro.fade(1, 0, 500);
+        }
+
+        if (area == 2) {
+            //var s = _.sample([sounds.howl1, sounds.howl2]);
+            var s = sounds.brass1;
+            s.play();
+        }
+    };
+
+    player.on_enter_area = function(area) {
+        console.log('enter area', area);
+
+        if (area == 0) {
+            sounds.intro.fade(0, 1, 1000);
+        }
+
+        if (area == 2) {
+            //var s = _.sample([sounds.howl1, sounds.howl2]);
+            var s = sounds.brass1;
+            s.play();
+        }
+
+        if (area == 6) {
+            //var s = _.sample([sounds.howl1, sounds.howl2]);
+            var s = sounds.pool1;
+            s.play();
+        }
+    };
 
     var level = new Level;
     level.load(5).then(() => {
@@ -58,9 +113,7 @@ window.main = function() {
 
     var player_cam = {
         enabled: true,
-        //aerial: false,
-        //ortho: false,
-        aerial: true,
+        aerial: false,
         ortho: true,
 
         pos: vec3.create(),

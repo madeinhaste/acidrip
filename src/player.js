@@ -10,6 +10,7 @@ export class Player {
         this.pgm = get_program('simple');
         this.level = null;
         this.collide = true;
+        this.area = 0;
     }
 
     move(x, y, z) {
@@ -22,6 +23,21 @@ export class Player {
         this.dir += angle;
     }
 
+    set_area(area) {
+        if (this.area == area)
+            return;
+
+        this.on_leave_area(this.area);
+        this.area = area;
+        this.on_enter_area(this.area);
+    }
+
+    on_leave_area(area) {
+    }
+
+    on_enter_area(area) {
+    }
+
     advance(dist) {
         var theta = -0.5 * Math.PI * this.dir;
         var x = this.pos[0] + dist * Math.cos(theta);
@@ -32,6 +48,8 @@ export class Player {
             var [tile, h, area] = this.level.get_tile(x, y, z);
             if (!tile) return;
             if (area == 1) return;  // collision
+
+            this.set_area(area);
 
             //if (tile.collision == 0) return;
             //if (tile.collision & 0x80) return;

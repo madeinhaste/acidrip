@@ -17,6 +17,7 @@
         "copy-to-clipboard": "^3.0.5",
         "file-size": "^1.0.0",
         "gl-matrix": "^2.3.2",
+        "howler": "^2.0.3",
         "msgpack-lite": "^0.1.26",
         "pad-left": "^2.1.0",
         "rollup-plugin-commonjs": "^8.0.2",
