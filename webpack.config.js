@@ -1,3 +1,5 @@
+var path = require('path');
+
 module.exports = {
     context: __dirname + '/src',
     entry: {
@@ -13,6 +15,16 @@ module.exports = {
         rules:[
             //{ test: /\.css$/, use: ['style-loader', 'css-loader'] },
             //{ test: /\.(sass|scss)$/, use: ['style-loader', 'css-loader', 'sass-loader'] },
+            {
+                test: /\.js$/,
+                include: path.join(__dirname, 'src'),
+                loader: 'babel-loader',
+                query: {
+                    presets: [
+                        'es2015'
+                    ]
+                }
+            }
         ],
     },
     devtool: 'eval-source-map',
