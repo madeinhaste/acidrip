@@ -7,6 +7,27 @@ import {fetch_msgpack, base64_encode, base64_decode} from './utils';
 import {simplex2} from './noise';
 import {rasterize} from './rasterize';
 
+/*
+function frustum_vec2_transformMat4(q, x, y) {
+    var w =  m[3]*q[0] + m[11]*q[2] + m[15]
+    var x = (m[0]*q[0] + m[ 8]*q[2] + m[12]) / w;
+    var y = (m[2]*q[0] + m[10]*q[2] + m[14]) / w;
+    return [x, -y];
+}
+*/
+
+var tmp = vec3.create();
+function calc_frustum_vertex(out, dp, imvp, x, z) {
+    tmp[0] = x;
+    tmp[1] = 0;
+    tmp[2] = z;
+
+    vec3.transformMat4(tmp, tmp, imvp);
+
+    out[dp + 0] = tmp[0];
+    out[dp + 1] = -tmp[2];
+}
+
 const VERTEX_SIZE = 24;
 
 const CHARACTERS = {
@@ -192,7 +213,6 @@ export class Level {
         // player
         this.player = null;
         this.frustum_quad = new Float32Array(8);
-        this.frustum_tiles = [];
         this.use_frustum_tiles = false;
     }
 
@@ -539,36 +559,14 @@ export class Level {
         if (!this.player)
             return;
 
-        // create frustum polygon
+        // project frustum quad
         var imvp = this.player.inverse_mvp;
-        var q = vec3.create();
-        var poly = [];
+        var quad = this.frustum_quad;
 
-        vec3.set(q, -1, 0, -1);
-        vec3.transformMat4(q, q, imvp);
-        poly.push([ q[0], -q[2] ]);
-
-        vec3.set(q,  1, 0, -1);
-        vec3.transformMat4(q, q, imvp);
-        poly.push([ q[0], -q[2] ]);
-
-        vec3.set(q,  1, 0,  1);
-        vec3.transformMat4(q, q, imvp);
-        poly.push([ q[0], -q[2] ]);
-
-        vec3.set(q, -1, 0,  1);
-        vec3.transformMat4(q, q, imvp);
-        poly.push([ q[0], -q[2] ]);
-
-        var dp = 0;
-        var out = this.frustum_quad;
-        poly.forEach(q => {
-            out[dp++] = q[0];
-            out[dp++] = q[1];
-        });
-
-        // rasterize it
-        this.frustum_tiles = rasterize(out);
+        calc_frustum_vertex(quad, 0, imvp, -1, -1);
+        calc_frustum_vertex(quad, 2, imvp,  1, -1);
+        calc_frustum_vertex(quad, 4, imvp,  1,  1);
+        calc_frustum_vertex(quad, 6, imvp, -1,  1);
     }
     
     draw_frustum(env) {
@@ -602,19 +600,14 @@ export class Level {
         bind_vertex_buffer(this.quad);
         pgm.vertexAttribPointer('position', 2, gl.FLOAT, false, 0, 0);
 
-        var tiles = this.frustum_tiles;
-        for (var i = 0; i < tiles.length; i += 2) {
-            var tx = tiles[i + 0];
-            var ty = tiles[i + 1];
-
+        rasterize(this.frustum_quad, (tx, ty) => {
             mat4.identity(mat);
             mat4.translate(mat, mat, [tx, 0, -ty]);
             mat4.rotateX(mat, mat, -0.5 * Math.PI);
             mat4.multiply(mat, env.camera.mvp, mat);
             pgm.uniformMatrix4fv('mvp', mat);
-
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
+        });
     }
 
     draw_tiles_debug(env) {
@@ -660,20 +653,17 @@ export class Level {
                 }
             }
         } else {
-            var frustum_tiles = this.frustum_tiles;
-            for (var i = 0; i < frustum_tiles.length; i += 2) {
-                var tx = frustum_tiles[i + 0];
-                var ty = frustum_tiles[i + 1];
+            rasterize(this.frustum_quad, (tx, ty) => {
                 var map_index = ty * map_w + tx;
                 var tile_index = map_tiles[map_index];
 
                 if (tile_index === 0) {
                     // empty tile
-                    continue;
+                    return;
                 }
 
                 this.draw_tile(tile_index, tx, ty, 0);
-            }
+            });
         }
 
         // --- characters ---
