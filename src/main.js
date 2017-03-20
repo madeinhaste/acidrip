@@ -58,8 +58,10 @@ window.main = function() {
 
     var player_cam = {
         enabled: true,
-        aerial: false,
-        ortho: false,
+        //aerial: false,
+        //ortho: false,
+        aerial: true,
+        ortho: true,
 
         pos: vec3.create(),
         dir: quat.create(),
@@ -96,6 +98,7 @@ window.main = function() {
         player_cam.aerial_pos[0] = player.pos[0];
         player_cam.aerial_pos[2] = -player.pos[1];
         level.fog_enabled = !player_cam.aerial;
+        level.draw_debug = player_cam.aerial;
     });
 
     key('o', function() {
@@ -167,17 +170,37 @@ window.main = function() {
             var t = -mouse.pick_ray.origin[1] / mouse.pick_ray.direction[1];
             vec3.scaleAndAdd(tmp, tmp, mouse.pick_ray.direction, t);
 
-            player.pos[0] = tmp[0];
-            player.pos[1] = -tmp[2];
-            copy_to_clipboard(vec3.str(player.pos));
-
-            $('#debug').text(vec3.str(player.pos));
+            if (e.ctrlKey) {
+                player.pos[0] = tmp[0];
+                player.pos[1] = -tmp[2];
+                copy_to_clipboard(vec3.str(player.pos));
+                $('#debug').text(vec3.str(player.pos));
+            } else {
+                var x = tmp[0];
+                var y = -tmp[2];
+                level.toggle_area(x, y, area_index);
+            }
         }
 
         mouse.update(e);
         mouse.button = -1;
     });
 
+    var area_index = 0;
+    function bind_area_key(idx) {
+        var area_key = String.fromCharCode(48 + idx);
+        key(area_key, function() {
+            if (area_index == idx)
+                area_index = 0;
+            else
+                area_index = idx;
+            $('#debug').text('area: ' + area_index);
+        });
+    }
+
+    for (var i = 0; i < 8; ++i) {
+        bind_area_key(i);
+    }
 
     // canvas drawing
     canvas._draw = function() {
@@ -209,12 +232,6 @@ window.main = function() {
         //$('#debug').text(`${player.pos[0].toFixed(3)},${player.pos[1].toFixed(3)}`);
     };
 
-    key('d', function() {
-        console.log('POS:', player.pos);
-        //set_clipboard_text(vec3.str(player.pos));
-        //copy_to_clipboard(vec3.str(player.pos));
-    });
-
     /*
     function set_clipboard_text(text) {
         var ta = document.querySelector('textarea#ta-clipboard');
@@ -241,6 +258,9 @@ window.main = function() {
         console.log('player.state:', state);
         vec3.copy(player.pos, state.pos);
         player.dir = state.dir;
+
+        player_cam.aerial_pos[0] = player.pos[0];
+        player_cam.aerial_pos[2] = -player.pos[1];
     }
 
     function init_player_state() {
@@ -251,6 +271,11 @@ window.main = function() {
     key('r', function() {
         vec3.set(player.pos, 60.5, 40.0, 0.5);
         player.dir = 1;
+    });
+
+    key('d', function() {
+        var s = localStorage.getItem('level.areas');
+        save_file_as(s, 'level.areas.txt', 'text/plain');
     });
 
     function update_ghost() {

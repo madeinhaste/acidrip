@@ -144,3 +144,28 @@ export function padl(x, n, c='0') {
         s = c + s;
     return s;
 }
+
+export function base64_decode(src, type) {
+    var raw = atob(src);
+    var len = raw.length;
+    var buf = new ArrayBuffer(len);
+    var dst = new Uint8Array(buf);
+    for (var i = 0; i < len; ++i) 
+        dst[i] = raw.charCodeAt(i);
+
+    return type ? new type(buf) : buf;
+}
+
+export function base64_encode(src) {
+    if (src instanceof ArrayBuffer)
+        src = new Uint8Array(src);
+    else
+        src = new Uint8Array(src.buffer, src.byteOffset, src.byteLength);
+
+    var len = src.length;
+    var dst = '';
+    for (var i = 0; i < len; ++i)
+        dst += String.fromCharCode(src[i]);
+
+    return btoa(dst);
+}

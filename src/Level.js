@@ -4,6 +4,7 @@ import {vec3, mat4} from 'gl-matrix';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {RAD_PER_DEG} from './utils';
 import {test_ray_triangle} from './raycast';
+import {base64_encode, base64_decode} from './utils';
 
 const VERTEX_SIZE = 24;
 
@@ -43,6 +44,17 @@ function alloc_buffer(size) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, size, gl.STATIC_DRAW);
     return buf;
+}
+
+function create_texture(format, w, h) {
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, format, w, h, 0, format, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return texture;
 }
 
 const TEXTURE_W = 2048;
@@ -122,6 +134,16 @@ class DrawList {
     }
 }
 
+const AREA_COLORS = {
+    0: [0, 0, 0],
+    1: [255, 0, 0],
+    2: [0, 255, 0],
+    3: [0, 0, 255],
+    4: [255, 255, 0],
+    5: [255, 0, 255],
+    6: [0, 255, 255],
+};
+
 export class Level {
     constructor() {
         this.id = 0;
@@ -157,6 +179,78 @@ export class Level {
 
         // quad buffer for tiles
         this.quad = null;
+
+        // areas
+        this.areas = null;
+        this.areas_texture = null;
+        this.areas_lut = null;
+
+        this.save_areas_db = _.debounce(() => this.save_areas(), 1000);
+        this.draw_debug = false;
+    }
+
+    save_areas() {
+        // convert RGBA to area array
+        var w = this.map.w;
+        var h = this.map.h;
+        var n = w * h;
+        var out = new Uint8Array(n);
+        var src = this.areas;
+        var sp = 0;
+        var sp_end = src.length;
+        var dp = 0;
+        while (sp < sp_end) {
+            var a = src[sp];
+            sp += 4;
+            out[dp++] = a;
+        }
+
+        var s = base64_encode(out);
+        localStorage.setItem('level.areas', s);
+        console.log('save_areas:', s.length);
+    }
+    
+    load_areas() {
+        var s = localStorage.getItem('level.areas');
+        if (!s) return;
+
+        var src = base64_decode(s, Uint8Array);
+        console.log('load_areas:', src.length);
+
+        // convert area to RGBA array
+        var w = this.map.w;
+        var h = this.map.h;
+        var out = this.areas;
+        var sp = 0;
+        var sp_end = src.length;
+        var dp = 0;
+        while (sp < sp_end) {
+            var a = src[sp++];
+            out[dp] = a;
+            dp += 4;
+        }
+
+        this.update_areas_texture();
+    }
+
+    toggle_area(x, y, area) {
+        var tx = Math.floor(x);
+        var ty = Math.floor(y);
+        if (tx < 0 || tx >= this.map.w)
+            return;
+        if (ty < 0 || ty >= this.map.h)
+            return;
+        var idx = ty * this.map.w + tx;
+
+        var idx2 = 4 * idx; // RGBA
+        this.areas[idx2] = (this.areas[idx2] == area) ? 0 : area;
+        this.update_areas_texture();
+        this.save_areas_db();
+    }
+
+    update_areas_texture() {
+        gl.bindTexture(gl.TEXTURE_2D, this.areas_texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.map.w, this.map.h, gl.RGBA, gl.UNSIGNED_BYTE, this.areas);
     }
 
     load(id) {
@@ -173,8 +267,8 @@ export class Level {
         var num = padl(this.id, 2);
         var url = `data/cdi/stg${num}/tex${version}.msgpack`;
 
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         return fetch_msgpack(url).then(data => {
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
             data.forEach(tile => {
                 var image = tile_to_image(tile);
                 gl.texSubImage2D(
@@ -201,16 +295,49 @@ export class Level {
         });
 
         // texture
-        this.texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, TEXTURE_W, TEXTURE_H, 0,
-                      gl.RGBA, gl.UNSIGNED_BYTE, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
+        this.initialize_areas();
+        this.load_areas();
 
         this.ready = true;
+    }
+
+    initialize_areas() {
+        console.assert(!this.areas);
+        var w = this.map.w;
+        var h = this.map.h;
+        this.areas = new Uint8Array(4 * w * h);
+        var dp = 0;
+        this.map.tiles.forEach(tile_index => {
+            var tile = this.tiles[tile_index];
+            var area = 1;
+            if (tile && tile.collision)
+                area = 0;
+            this.areas[dp] = area;
+            //this.areas[dp] = Math.random() > 0.5 ? 255 : 0;
+            dp += 4;
+        });
+        console.log(dp);
+
+        this.areas_texture = create_texture(gl.RGBA, w, h);
+        console.log('upload areas:');
+        gl.texSubImage2D(
+            gl.TEXTURE_2D, 0,
+            0, 0, w, h,
+            gl.RGBA, gl.UNSIGNED_BYTE,
+            this.areas);
+
+        this.areas_lut = create_texture(gl.RGBA, 256, 1);
+        var lut = new Uint8Array(4 * 256);
+        _.each(AREA_COLORS, (col, idx) => {
+            var dp = 4 * idx;
+            lut[dp + 0] = col[0];
+            lut[dp + 1] = col[1];
+            lut[dp + 2] = col[2];
+            lut[dp + 3] = 255;
+        });
+
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 1, gl.RGBA, gl.UNSIGNED_BYTE, lut);
     }
 
     bind_buffer(buffer_index) {
@@ -349,7 +476,7 @@ export class Level {
         // setup draws
         this.draw2(env);
 
-        $('#debug').text(`op: ${this.draws.opaque.index}  tl: ${this.draws.translucent.index}`);
+        //$('#debug').text(`op: ${this.draws.opaque.index}  tl: ${this.draws.translucent.index}`);
 
         // draw opaque
         this.draw_models(this.draws.opaque);
@@ -362,7 +489,8 @@ export class Level {
         this.draw_models(this.draws.translucent);
 
         // debug tiles
-        this.draw_tiles_debug(env);
+        if (this.draw_debug)
+            this.draw_tiles_debug(env);
 
         gl.depthMask(true);
         gl.disable(gl.BLEND);
@@ -373,10 +501,17 @@ export class Level {
     }
 
     draw_tiles_debug(env) {
+        if (!this.areas)
+            return;
+
         var pgm = get_program('tiles').use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
         pgm.uniform2f('size', this.map.w, this.map.h);
         pgm.uniform4f('color', 1, 1, 1, 0.1);
+
+        pgm.uniformSampler2D('s_map', this.areas_texture);
+        pgm.uniformSampler2D('s_lut', this.areas_lut);
+
         if (!this.quad) {
             this.quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
         }
@@ -425,7 +560,7 @@ export class Level {
 
         // boats
         var tx = 0.025 * this.time;
-        this.draw_character(CHARACTERS.boat, 15.00, 64.85 - tx, 0.0, 0);
+        this.draw_character(CHARACTERS.boat, 13.50, 64.85 - tx, 0.0, 0);
 
         this.draw_character(CHARACTERS.dumpster_body, 54.30, 28.71, 0.0, 0);
 
@@ -444,13 +579,13 @@ export class Level {
 
         if (tx < 0 || tx >= map_w || ty < 0 || ty >= map_h) {
             // off map
-            return [null, 0];
+            return [null, 0, 0];
         }
 
         var map_index = ty * map_w + tx;
         var tile_index = this.map.tiles[map_index];
         if (tile_index === 0)
-            return [null, 0];
+            return [null, 0, 0];
 
         var tile = this.tiles[tile_index];
         //console.log('map_index:', x, y, map_index, tile);
@@ -459,7 +594,9 @@ export class Level {
         var fx = x - tx;
         var fy = y - ty;
         var h = tile_raycast(this, tile, fx, fy, z);
-        return [tile, h];
+
+        var area = this.areas[4 * map_index];
+        return [tile, h, area];
     }
 }
 

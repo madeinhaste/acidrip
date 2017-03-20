@@ -29,9 +29,11 @@ export class Player {
         var z = this.pos[2];
 
         if (this.collide && this.level) {
-            var [tile, h] = this.level.get_tile(x, y, z);
+            var [tile, h, area] = this.level.get_tile(x, y, z);
             if (!tile) return;
-            if (tile.collision == 0) return;
+            if (area == 1) return;  // collision
+
+            //if (tile.collision == 0) return;
             //if (tile.collision & 0x80) return;
         } else {
             var h = 0.0;
