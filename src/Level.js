@@ -154,6 +154,9 @@ export class Level {
             opaque: new DrawList,
             translucent: new DrawList,
         };
+
+        // quad buffer for tiles
+        this.quad = null;
     }
 
     load(id) {
@@ -351,12 +354,28 @@ export class Level {
 
         this.draw_models(this.draws.translucent);
 
+        // debug tiles
+        this.draw_tiles_debug(env);
+
         gl.depthMask(true);
         gl.disable(gl.BLEND);
 
         // _.each(this.draws, (dl, k) => {
         //     console.log(k, 'cap:', dl.draws.length, ' len:', dl.index, ' cre:', dl.created);
         // });
+    }
+
+    draw_tiles_debug(env) {
+        var pgm = get_program('tiles').use();
+        pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
+        pgm.uniform2f('size', this.map.w, this.map.h);
+        if (!this.quad) {
+            this.quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
+        }
+        bind_vertex_buffer(this.quad);
+        pgm.vertexAttribPointer('coord', 2, gl.FLOAT, false, 0, 0);
+        gl.disable(gl.DEPTH_TEST);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     draw2(env) {

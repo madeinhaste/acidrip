@@ -11,7 +11,10 @@ window.main = function() {
     var canvas = new Canvas3D({
         antialias: false,
         extensions: [ 'OES_standard_derivatives' ],
-        sources: [ 'shaders/tmd.glsl' ]
+        sources: [
+            'shaders/tmd.glsl',
+            'shaders/tiles.glsl',
+        ]
     });
     console.assert(gl);
 
