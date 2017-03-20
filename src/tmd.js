@@ -34,6 +34,7 @@ export class TMDObject {
         this.vertex_buffer = null;
         this.vertex_count = 0;
         this.vertex_start = 0;
+        this.opaque_count = 0;
     }
 
     read(f, top) {
@@ -76,10 +77,19 @@ export class TMDObject {
     create_buffer() {
         var vertex_size = 24;
         var vertex_count = 0;
+        var opaque_count = 0;
         this.prims.forEach(prim => {
-            vertex_count += (prim.nv === 4) ? 6 : 3;
+            var c = (prim.nv === 4) ? 6 : 3;
+            vertex_count += c;
+
+            var is_opaque = !prim.abe;
+            if (is_opaque)
+                opaque_count += c;
         });
         this.vertex_count = vertex_count;
+        this.opaque_count = opaque_count;
+
+        this.vertex_count = opaque_count;
 
         var vertex_array = this.vertex_array = new Uint8Array(vertex_size * vertex_count);
         var out = new DataView(vertex_array.buffer);
@@ -149,17 +159,26 @@ export class TMDObject {
             console.assert(dp <= vertex_array.length);
         }
 
-        this.prims.forEach(prim => {
-            write_vertex(prim, 0);
-            write_vertex(prim, 1);
-            write_vertex(prim, 2);
+        function write_prims(prims, opaque) {
+            prims.forEach(prim => {
+                var is_opaque = !prim.abe;
+                if (is_opaque !== opaque)
+                    return;
 
-            if (prim.nv === 4) {
+                write_vertex(prim, 0);
                 write_vertex(prim, 1);
                 write_vertex(prim, 2);
-                write_vertex(prim, 3);
-            }
-        });
+
+                if (prim.nv === 4) {
+                    write_vertex(prim, 1);
+                    write_vertex(prim, 2);
+                    write_vertex(prim, 3);
+                }
+            });
+        }
+
+        write_prims(this.prims, true);
+        write_prims(this.prims, false);
 
         // fix normals
         (function() {
@@ -257,6 +276,8 @@ export class TMDPrimitive {
         this.n = [];
         this.v = [];
         this.c = [];
+
+        this.abe = false;
     }
 
     read(f) {
@@ -275,6 +296,8 @@ export class TMDPrimitive {
         var TME = has_bit(this.mode, 2);
         var QUA = has_bit(this.mode, 3);
         var IIP = has_bit(this.mode, 4);
+
+        this.abe = ABE;
 
         var nv = this.nv = QUA ? 4 : 3;
 

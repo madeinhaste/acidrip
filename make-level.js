@@ -115,6 +115,7 @@ var buffers = new VertexBufferList;
 
 function add_model(tmd_object) {
     var o = buffers.add_array(tmd_object.vertex_array);
+    o.opaque_count = tmd_object.opaque_count;
     var model_index = level.models.length;
     level.models.push(o);
     return model_index;

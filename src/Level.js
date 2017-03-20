@@ -7,6 +7,28 @@ import {test_ray_triangle} from './raycast';
 
 const VERTEX_SIZE = 24;
 
+const CHARACTERS = {
+    barrel: 0,
+    headless_woman: 1,
+    dumpster: 2,
+    dumpster_body: 3,
+    hopskotch_girl: 4,
+    corpse: 5,
+    boat: 6,
+    hanged_woman: 7,
+    spaceship: 8,
+    pulse: 9,
+    kicker: 10,
+    ghost: 11,
+    gunman: 12,
+    victim: 13,
+    car: 14,
+    sailor: 15,
+    boat2: 16,
+    plane: 17,
+    boat3: 18,
+};
+
 function fetch_msgpack(url) {
     return fetch(url)
         .then(r => r.arrayBuffer())
@@ -83,6 +105,13 @@ export class Level {
         this.fog_enabled = false;
 
         this.ready = false;
+        this.draw_opaque = true;
+        this.time = 0.0;
+
+        this.ghost = {
+            pos: vec3.fromValues(61.39, 32.61, 0.0),
+            dir: 0
+        };
     }
 
     load(id) {
@@ -91,7 +120,7 @@ export class Level {
         return fetch_msgpack(url).then(data => {
             this.initialize(data);
             console.log(url);
-            return this.load_texture('a');
+            return this.load_texture('d');
         });
     }
 
@@ -159,7 +188,15 @@ export class Level {
         var model = this.models[model_index];
         this.bind_buffer(model.buffer);
         this.pgm.uniformMatrix4fv('m_obj', mat);
-        gl.drawArrays(gl.TRIANGLES, model.start, model.count);
+
+        var oc = model.opaque_count;
+        if (this.draw_opaque) {
+            if (oc) gl.drawArrays(gl.TRIANGLES, model.start, oc);
+        }
+        else {
+            var tc = model.count - oc;
+            if (tc) gl.drawArrays(gl.TRIANGLES, model.start + oc, tc);
+        }
     }
 
     draw_tile(tile_index, tx, ty, tz) {
@@ -192,7 +229,9 @@ export class Level {
         //rotate = 0;
 
         //const scale = 0.5/1024;
-        const scale = 0.75/1024;
+        //const scale = 0.75/1024;
+        const scale = 0.5/1024;
+
         //const scale = 1/512;
         mat4.identity(mat);
         mat4.translate(mat, mat, [tx + 0.5, tz, -ty + 0.5]);
@@ -215,6 +254,8 @@ export class Level {
         if (!this.ready)
             return;
 
+        this.time = performance.now() / 1000;
+
         // reset bound buffer
         this.bound_buffer_index = -1;
 
@@ -223,7 +264,6 @@ export class Level {
         pgm.uniform3fv('view_pos', env.camera.view_pos);
         pgm.uniform3fv('light_pos', env.light_pos);
         pgm.uniformSampler2D('s_tix', this.texture);    // XXX
-        pgm.uniform1f('ambient', 0.75);
 
         if (this.fog_enabled) {
             pgm.uniform3f('fog_color', 0.05, 0, 0.15);
@@ -234,6 +274,27 @@ export class Level {
 
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
+
+        // opaque pass
+
+        this.draw_opaque = true;
+        this.draw2(env);
+
+        // translucent pass
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.depthMask(false);
+
+        this.draw_opaque = false;
+        this.draw2(env);
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+    }
+
+    draw2(env) {
+        var pgm = this.pgm;
+        pgm.uniform1f('ambient', 0.75);
 
         var map_w = this.map.w;
         var map_h = this.map.h;
@@ -254,22 +315,31 @@ export class Level {
         }
 
         //this.draw_character(0, 50.49, 0.0, 38.5);
-        pgm.uniform1f('ambient', 2.50);
-        this.draw_character(5, 59.93, 38.0, 0.0, 3);
-        //this.draw_character(10);
+        //pgm.uniform1f('ambient', 2.50);
+        pgm.uniform1f('ambient', 1.00);
+        this.draw_character(CHARACTERS.corpse, 59.93, 38.0, 0.0, 3);
+        this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 0);
+        this.draw_character(CHARACTERS.sailor, 77.30, 97.25, -0.015, 0);
+        this.draw_character(CHARACTERS.headless_woman, 62.90, 8.90, 0.0, 2);
+        this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 0.5);
+        this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 0);
+        this.draw_character(CHARACTERS.plane, 77.30, 97.25, 0.0, 0);
+        this.draw_character(CHARACTERS.car, 60.0, 85.0, 0, 0);
+        
+        this.draw_character(CHARACTERS.gunman, 93.00, 70.0, 0.0, 0);
+        this.draw_character(CHARACTERS.victim, 93.00, 66.25, 0.0, 2);
 
-        /*
-        this.corpse.forEach(obj => {
-            mat4.identity(mat);
-            var scale = 0.8 / 1024;
-            mat4.translate(mat, mat, [50.49, 0.0, -38.5]);
-            mat4.scale(mat, mat, [scale, scale, scale]);
-            mat4.rotateY(mat, mat, RAD_PER_DEG * 170);
-            mat4.rotateZ(mat, mat, RAD_PER_DEG * -65);
-            pgm.uniform1f('ambient', 2.50);
-            this.draw_tmd_object2(obj, mat);
-        });
-        */
+        // boats
+        var tx = 0.025 * this.time;
+        this.draw_character(CHARACTERS.boat, 15.00, 64.85 - tx, 0.0, 0);
+
+        this.draw_character(CHARACTERS.dumpster_body, 54.30, 28.71, 0.0, 0);
+
+
+
+        var pos = this.ghost.pos;
+        var dir = this.ghost.dir;
+        this.draw_character(CHARACTERS.ghost, pos[0], pos[1], pos[2], dir);
     }
 
     get_tile(x, y, z) {

@@ -40,7 +40,7 @@ var Canvas3D = (function() {
         this.draw = function() {};
         this.redraw_queued = false;
 
-        this.init_input();
+        //this.init_input();
 
         this.camera = new Camera();
         this.camera.near = 0.1;
