@@ -19,7 +19,7 @@ uniform vec3 light_pos;
 uniform sampler2D s_tix;
 
 uniform vec3 debug_color;
-uniform float ambient;
+uniform vec3 ambient;
 uniform vec2 fog_range;
 uniform vec3 fog_color;
 
@@ -68,15 +68,8 @@ void main() {
     vec3 H = normalize(L + V);
 
     float NdotL = max(0.0, dot(N, L));
-    float NdotH = max(0.0, dot(N, H));
-    //float Ka = 0.45;
-    float Ka = ambient;
-    float Kd = Ka + 2.0*NdotL;
-    float Ks = pow(NdotH, 30.0);
-
+    vec3 Kd = ambient + vec3(2.0 * NdotL);
     vec3 Cd = v_color;
-    //vec3 Cs = vec3(0.5);
-    //vec3 C = Kd * Cd + Ks * Cs;
     vec3 C = Kd * Cd;
 
     if (v_texcoord.x > 0.0) {

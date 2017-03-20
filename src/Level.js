@@ -1,10 +1,10 @@
 import {padl} from './utils';
-import msgpack from 'msgpack-lite';
 import {vec3, mat4} from 'gl-matrix';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {RAD_PER_DEG} from './utils';
 import {test_ray_triangle} from './raycast';
-import {base64_encode, base64_decode} from './utils';
+import {fetch_msgpack, base64_encode, base64_decode} from './utils';
+import {simplex2} from './noise';
 
 const VERTEX_SIZE = 24;
 
@@ -29,15 +29,6 @@ const CHARACTERS = {
     plane: 17,
     boat3: 18,
 };
-
-function fetch_msgpack(url) {
-    return fetch(url)
-        .then(r => r.arrayBuffer())
-        .then(ab => {
-            var b = new Uint8Array(ab);
-            return msgpack.decode(b);
-        });
-}
 
 function alloc_buffer(size) {
     var buf = gl.createBuffer();
@@ -96,6 +87,7 @@ function tile_to_image(tile) {
 
 var anim_mat = mat4.create();
 var mat = mat4.create();
+var ambient = vec3.create();
 
 class Draw {
     constructor(buffer, start, count, matrix) {
@@ -171,8 +163,11 @@ export class Level {
 
         this.ghost = {
             pos: vec3.fromValues(61.39, 32.61, 0.0),
-            dir: 0
+            dir: 0,
+            active: false
         };
+
+        this.plane_start = 0;
 
         // draw list
         this.draws = {
@@ -190,6 +185,7 @@ export class Level {
 
         this.save_areas_db = _.debounce(() => this.save_areas(), 1000);
         this.draw_debug = false;
+        this.flicker = false;
     }
 
     save_areas() {
@@ -262,7 +258,7 @@ export class Level {
         return fetch_msgpack(url).then(data => {
             this.initialize(data);
             console.log(url);
-            return this.load_texture('a');
+            return this.load_texture('c');
         });
     }
 
@@ -413,8 +409,16 @@ export class Level {
         ty += 1;
 
         var now = performance.now();
-        var t = Math.floor(now * 60 / 1000);
 
+        if (ch_index == CHARACTERS.plane) {
+            if (!this.plane_start)
+                return;
+            now = now - this.plane_start;
+            if (now > 4000)
+                return;
+        }
+
+        var t = Math.floor(now * 60 / 1000);
         var ch = this.characters[ch_index];
         var take = ch.takes[0];
 
@@ -479,6 +483,21 @@ export class Level {
         // setup draws
         this.draw2(env);
 
+        vec3.set(ambient, 0.75, 0.75, 0.75);
+
+        if (this.flicker) {
+            var time = performance.now() / 1000;
+            var f0 = 0.850*(0.5 + 0.5*simplex2(time, 0.3123));
+            var f1 = 0.500*(0.5 + 0.5*simplex2(2*time, 0.3123));
+            var f2 = 1.000*(0.5 + 0.5*simplex2(8*time, 0.3123));
+
+            vec3.scaleAndAdd(ambient, ambient, [1, 0.9, 0.5], 0.1 * f2);
+
+            vec3.scaleAndAdd(ambient, ambient, [1, 0.2, 0.5], 0.2 * f1);
+            vec3.scaleAndAdd(ambient, ambient, [1, 0.1, 0.0], 0.7 * f0);
+        }
+        pgm.uniform3fv('ambient', ambient);
+
         //$('#debug').text(`op: ${this.draws.opaque.index}  tl: ${this.draws.translucent.index}`);
 
         // draw opaque
@@ -526,8 +545,6 @@ export class Level {
 
     draw2(env) {
         var pgm = this.pgm;
-        pgm.uniform1f('ambient', 0.75);
-
         var map_w = this.map.w;
         var map_h = this.map.h;
         var map_tiles = this.map.tiles;
@@ -546,14 +563,16 @@ export class Level {
             }
         }
 
-        //this.draw_character(0, 50.49, 0.0, 38.5);
-        //pgm.uniform1f('ambient', 2.50);
-        pgm.uniform1f('ambient', 1.00);
         this.draw_character(CHARACTERS.corpse, 59.93, 38.0, 0.0, 3);
         this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 0);
         this.draw_character(CHARACTERS.sailor, 77.30, 97.25, -0.015, 0);
         this.draw_character(CHARACTERS.headless_woman, 62.90, 8.90, 0.0, 2);
-        this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 0.5);
+
+        // kicker
+        this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 1.2);
+        this.draw_character(CHARACTERS.corpse, 91.54, 9.33, 0.0, -0.5)
+        this.draw_character(CHARACTERS.dumpster, 92.00, 10.00, 0.0, 0.5);
+
         this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 0);
         this.draw_character(CHARACTERS.plane, 77.30, 97.25, 0.0, 0);
         this.draw_character(CHARACTERS.car, 60.0, 85.0, 0, 0);

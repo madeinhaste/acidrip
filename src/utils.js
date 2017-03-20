@@ -1,3 +1,5 @@
+import msgpack from 'msgpack-lite';
+
 export const DEG_PER_RAD = 180/Math.PI;
 export const RAD_PER_DEG = Math.PI/180;
 export const TWO_PI = 2*Math.PI;
@@ -125,6 +127,15 @@ export function fetch_binary(url) {
         .then(ab => {
             var f = new BinaryReader(ab);
             return f;
+        });
+}
+
+export function fetch_msgpack(url) {
+    return fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => {
+            var b = new Uint8Array(ab);
+            return msgpack.decode(b);
         });
 }
 

@@ -1,11 +1,12 @@
 import {Canvas3D} from './Canvas3D';
-import {vec2, vec3, mat4, quat} from 'gl-matrix';
+import {vec2, vec3, vec4, mat4, quat} from 'gl-matrix';
 import {Player} from './player';
 import {padl, save_file_as, get_event_offset, lerp} from './utils';
 import {Level} from './Level';
 import {PickRay} from './PickRay';
 import copy_to_clipboard from 'copy-to-clipboard';
 import {Howl} from 'howler';
+import {Lyric} from './lyric';
 
 function get_sound(path, loop) {
     var base_url = 'sounds/' + path;
@@ -26,6 +27,10 @@ window.main = function() {
         brass2: get_sound('brass2', false),
         pool1: get_sound('pool1', true),
         pool2: get_sound('pool2', true),
+        campfire: get_sound('campfire_c', true),
+        screech: get_sound('screech_and_bump', false),
+        siren: get_sound('siren', false),
+        plane_splash: get_sound('plane_splash', false),
     };
     sounds.intro.play();
 
@@ -39,7 +44,8 @@ window.main = function() {
     });
     console.assert(gl);
 
-    canvas.camera.far = 10000;
+    canvas.camera.far = 1000;
+    canvas.camera.near = 0.01;
     canvas.camera.fov = 30;
     canvas.light_pos = vec3.fromValues(100, 100, 100);
     canvas.light_pos_v = vec3.create();
@@ -54,6 +60,7 @@ window.main = function() {
     player.dir = 1;
     player.collide = true;
 
+
     player.on_leave_area = function(area) {
         console.log('leave area', area);
 
@@ -66,6 +73,21 @@ window.main = function() {
             var s = sounds.brass1;
             s.play();
         }
+
+        if (area == 5) {
+            lyrics.campfire.fade();
+            level.ghost.active = true;
+        }
+
+        if (area == 3) {
+            // kicker
+            sounds.brass2.stop();
+        }
+
+
+        if (area == 6) {
+            lyrics.neon.fade();
+        }
     };
 
     player.on_enter_area = function(area) {
@@ -75,15 +97,34 @@ window.main = function() {
             sounds.intro.fade(0, 1, 1000);
         }
 
+        if (area == 3) {
+            // kicker
+            sounds.brass2.play();
+        }
+
         if (area == 2) {
             //var s = _.sample([sounds.howl1, sounds.howl2]);
             var s = sounds.brass1;
             s.play();
+            lyrics.neon.start();
+        }
+
+        if (area == 5) {
+            //var s = _.sample([sounds.howl1, sounds.howl2]);
+            var s = sounds.campfire;
+            s.play();
+            lyrics.campfire.start();
         }
 
         if (area == 6) {
-            //var s = _.sample([sounds.howl1, sounds.howl2]);
-            var s = sounds.pool1;
+            var s = _.sample([sounds.pool1, sounds.pool2]);
+            s.play();
+            lyrics.neon.start();
+        }
+
+        if (area == 4) {
+            var s = _.sample([sounds.howl1, sounds.howl2]);
+            //var s = sounds.siren;
             s.play();
         }
     };
@@ -93,13 +134,37 @@ window.main = function() {
         player.level = level;
         init_player_state();
     });
-    
+
+    var lyrics = {
+        campfire: new Lyric('data/lyric-campfire2.msgpack'),
+        neon: new Lyric('data/lyric-neon.msgpack'),
+    };
+
+    lyrics.campfire.setup({
+        pos: [77.5, 1.5, -66.001],
+        scale: 2,
+        rotate: Math.PI,
+        color: [1.0, 0.8, 0.1, 0.85],
+        color2: [1.0, 0.3, 0.0, 0.65],
+        speed: 0.02
+    });
+
+    lyrics.neon.setup({
+        pos: [97.7, 1.8, -81.5],
+        scale: 8.0,
+        rotate: -0.5*Math.PI,
+        color: [0.0, 0.4, 0.9, 0.85],
+        color2: [0.8, 0.0, 0.7, 0.65],
+        speed: 0.5
+    });
+
     function animate() {
         requestAnimationFrame(animate);
         // if (player.check_keys())
         //     canvas.redraw();
         player.check_keys();
         update_ghost();
+        update_plane();
         canvas._draw();
     }
     animate();
@@ -279,10 +344,12 @@ window.main = function() {
         }
 
         //this.draw_grid();
+        level.flicker = (player.area == 5);
         level.draw(this);
         player.draw(this);
 
-        //$('#debug').text(`${player.pos[0].toFixed(3)},${player.pos[1].toFixed(3)}`);
+        lyrics.campfire.draw(this);
+        lyrics.neon.draw(this);
     };
 
     /*
@@ -330,6 +397,9 @@ window.main = function() {
         var s = localStorage.getItem('level.areas');
         save_file_as(s, 'level.areas.txt', 'text/plain');
     });
+    
+    //vec3.set(level.ghost.pos, 77.45, 65.30, 0.0);
+    vec3.set(level.ghost.pos, 78.52, 66.41, 0.0);
 
     function update_ghost() {
         var ghost = level.ghost;
@@ -340,15 +410,37 @@ window.main = function() {
         var dir = (2 * angle / Math.PI) + 1;
         ghost.dir = lerp(ghost.dir, dir, 0.05);
 
-        var theta = -0.5 * Math.PI * (ghost.dir + 1);
-        var dist = 0.005;
-        var x = ghost.pos[0] + dist * Math.cos(theta);
-        var y = ghost.pos[1] + dist * Math.sin(theta);
+        if (ghost.active) {
+            var theta = -0.5 * Math.PI * (ghost.dir + 1);
+            var dist = 0.005;
+            var x = ghost.pos[0] + dist * Math.cos(theta);
+            var y = ghost.pos[1] + dist * Math.sin(theta);
+            ghost.pos[0] = x;
+            ghost.pos[1] = y;
 
-        ghost.pos[0] = x;
-        ghost.pos[1] = y;
+            var dist = vec2.dist(ghost.pos, player.pos);
+            //console.log(dist);
+            if (dist < 2.0) {
+                ghost.active = false;
+                sounds.screech.play();
+            }
+        }
+    }
+
+    function update_plane() {
+        if (level.plane_start)
+            return;
+
+        var px = ~~player.pos[0];
+        var py = ~~player.pos[1];
+        var dir = Math.round(player.dir) % 4;
+        //console.log(px, py, dir);
+        if (px == 79 && py == 86 && dir == 3) {
+            sounds.plane_splash.play();
+            level.plane_start = performance.now();
+        }
     }
 }
 
-import {mom_main} from './mom-main';
-window.mom_main = mom_main;
+import {digitize_main} from './digitize-main';
+window.digitize_main = digitize_main;
