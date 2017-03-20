@@ -226,21 +226,7 @@ export class Level {
         this.bound_buffer_index = buffer_index;
     }
 
-    _draw_model(model_index, mat) {
-        var model = this.models[model_index];
-        this.bind_buffer(model.buffer);
-        this.pgm.uniformMatrix4fv('m_obj', mat);
-
-        var oc = model.opaque_count;
-        if (this.draw_opaque) {
-            if (oc) gl.drawArrays(gl.TRIANGLES, model.start, oc);
-        }
-        else {
-            var tc = model.count - oc;
-            if (tc) gl.drawArrays(gl.TRIANGLES, model.start + oc, tc);
-        }
-    }
-
+    // construct drawlist
     draw_model(model_index, mat) {
         var model = this.models[model_index];
         var oc = model.opaque_count;
@@ -255,6 +241,7 @@ export class Level {
         }
     }
 
+    // dispatch drawlist
     draw_models(drawlist) {
         var pgm = this.pgm;
         var draws = drawlist.draws;
