@@ -332,9 +332,9 @@ window.main = function() {
         if (player_cam.enabled) {
             player_cam.update();
 
-            this.camera.far = 10;
-            //this.camera.near = 0.01;
-            this.camera.near = 0.5;
+            this.camera.far = 20;
+            this.camera.near = 0.01;
+            //this.camera.near = 0.5;
             this.camera.ortho = false;
             this.camera.update_quat(player_cam.pos, player_cam.dir);
 

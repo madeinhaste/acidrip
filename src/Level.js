@@ -213,7 +213,7 @@ export class Level {
         // player
         this.player = null;
         this.frustum_quad = new Float32Array(8);
-        this.use_frustum_tiles = false;
+        this.use_frustum_tiles = true;
     }
 
     save_areas() {
@@ -236,10 +236,19 @@ export class Level {
         localStorage.setItem('level.areas', s);
         console.log('save_areas:', s.length);
     }
+
+    load_areas_default() {
+        fetch('data/level.areas.txt')
+            .then(r => r.text())
+            .then(s => this.load_areas(s));
+    }
     
-    load_areas() {
-        var s = localStorage.getItem('level.areas');
-        if (!s) return;
+    load_areas(s) {
+        if (!s)
+            s = localStorage.getItem('level.areas');
+
+        if (!s)
+            return;
 
         var src = base64_decode(s, Uint8Array);
         console.log('load_areas:', src.length);
@@ -324,7 +333,8 @@ export class Level {
         // texture
         this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
         this.initialize_areas();
-        this.load_areas();
+        //this.load_areas();
+        this.load_areas_default();
 
         this.ready = true;
     }
@@ -497,7 +507,7 @@ export class Level {
 
         if (this.fog_enabled) {
             pgm.uniform3f('fog_color', 0.05, 0, 0.15);
-            pgm.uniform2f('fog_range', 10, 40);
+            pgm.uniform2f('fog_range', 10, 20);
         } else {
             pgm.uniform2f('fog_range', 10000, 10000);
         }
@@ -654,6 +664,11 @@ export class Level {
             }
         } else {
             rasterize(this.frustum_quad, (tx, ty) => {
+                if (tx < 0 || tx >= map_w || ty < 0 || ty >= map_h) {
+                    // out of bounds
+                    return;
+                }
+
                 var map_index = ty * map_w + tx;
                 var tile_index = map_tiles[map_index];
 
