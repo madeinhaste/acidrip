@@ -85,6 +85,40 @@ function tile_to_image(tile) {
 var anim_mat = mat4.create();
 var mat = mat4.create();
 
+class Draw {
+    constructor(buffer, start, count, matrix) {
+        this.buffer = buffer;
+        this.start = start;
+        this.count = count;
+        this.matrix = mat4.clone(matrix);
+    }
+}
+
+class DrawList {
+    constructor() {
+        this.draws = [];
+        this.index = 0;
+    }
+
+    reset() {
+        this.index = 0;
+    }
+
+    push(buffer, start, count, matrix) {
+        var draw;
+        if (this.index >= this.draws.length) {
+            draw = new Draw(buffer, start, count, matrix);
+            this.draws.push(draw);
+        } else {
+            draw = this.draws[this.index++];
+            draw.buffer = buffer;
+            draw.start = start;
+            draw.count = count;
+            mat4.copy(draw.matrix, matrix);
+        }
+    }
+}
+
 export class Level {
     constructor() {
         this.id = 0;
@@ -111,6 +145,12 @@ export class Level {
         this.ghost = {
             pos: vec3.fromValues(61.39, 32.61, 0.0),
             dir: 0
+        };
+
+        // draw list
+        this.draws = {
+            opaque: [],
+            translucent: []
         };
     }
 
@@ -184,7 +224,7 @@ export class Level {
         this.bound_buffer_index = buffer_index;
     }
 
-    draw_model(model_index, mat) {
+    _draw_model(model_index, mat) {
         var model = this.models[model_index];
         this.bind_buffer(model.buffer);
         this.pgm.uniformMatrix4fv('m_obj', mat);
@@ -197,6 +237,46 @@ export class Level {
             var tc = model.count - oc;
             if (tc) gl.drawArrays(gl.TRIANGLES, model.start + oc, tc);
         }
+    }
+
+    draw_model(model_index, mat) {
+        var model = this.models[model_index];
+        var mat2 = mat4.clone(mat);
+
+        var oc = model.opaque_count;
+        if (oc) {
+            this.draws.opaque.push({
+                buffer: model.buffer,
+                start: model.start,
+                count: oc,
+                mat: mat2
+            });
+        }
+
+        var tc = model.count - oc;
+        if (tc) {
+            this.draws.translucent.push({
+                buffer: model.buffer,
+                start: model.start + oc,
+                count: tc,
+                mat: mat2
+            });
+        }
+
+        /*
+        this.draws.push({
+            model: model_index,
+            mat: mat4.clone(mat)
+        });
+        */
+    }
+
+    draw_models(draws) {
+        draws.forEach(d => {
+            this.bind_buffer(d.buffer);
+            this.pgm.uniformMatrix4fv('m_obj', d.mat);
+            gl.drawArrays(gl.TRIANGLES, d.start, d.count);
+        });
     }
 
     draw_tile(tile_index, tx, ty, tz) {
@@ -275,18 +355,27 @@ export class Level {
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
 
-        // opaque pass
+        // clear draws
+        this.draws.opaque = [];
+        this.draws.translucent = [];
 
-        this.draw_opaque = true;
+        // setup draws
         this.draw2(env);
+
+        $('#debug').text('' + this.draws.length);
+
+
+
+
+        // draw opaque
+        this.draw_models(this.draws.opaque);
 
         // translucent pass
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
         gl.depthMask(false);
 
-        this.draw_opaque = false;
-        this.draw2(env);
+        this.draw_models(this.draws.translucent);
 
         gl.depthMask(true);
         gl.disable(gl.BLEND);
