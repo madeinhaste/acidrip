@@ -100,15 +100,18 @@ class DrawList {
         this.index = 0;
     }
 
-    reset() {
+    clear() {
         this.index = 0;
+        this.created = 0;
     }
 
     push(buffer, start, count, matrix) {
         var draw;
         if (this.index >= this.draws.length) {
             draw = new Draw(buffer, start, count, matrix);
+            ++this.created;
             this.draws.push(draw);
+            this.index = this.draws.length;
         } else {
             draw = this.draws[this.index++];
             draw.buffer = buffer;
@@ -139,7 +142,6 @@ export class Level {
         this.fog_enabled = false;
 
         this.ready = false;
-        this.draw_opaque = true;
         this.time = 0.0;
 
         this.ghost = {
@@ -149,8 +151,8 @@ export class Level {
 
         // draw list
         this.draws = {
-            opaque: [],
-            translucent: []
+            opaque: new DrawList,
+            translucent: new DrawList,
         };
     }
 
@@ -241,42 +243,28 @@ export class Level {
 
     draw_model(model_index, mat) {
         var model = this.models[model_index];
-        var mat2 = mat4.clone(mat);
-
         var oc = model.opaque_count;
+
         if (oc) {
-            this.draws.opaque.push({
-                buffer: model.buffer,
-                start: model.start,
-                count: oc,
-                mat: mat2
-            });
+            this.draws.opaque.push(model.buffer, model.start, oc, mat);
         }
 
         var tc = model.count - oc;
         if (tc) {
-            this.draws.translucent.push({
-                buffer: model.buffer,
-                start: model.start + oc,
-                count: tc,
-                mat: mat2
-            });
+            this.draws.translucent.push(model.buffer, model.start + oc, tc, mat);
         }
-
-        /*
-        this.draws.push({
-            model: model_index,
-            mat: mat4.clone(mat)
-        });
-        */
     }
 
-    draw_models(draws) {
-        draws.forEach(d => {
+    draw_models(drawlist) {
+        var pgm = this.pgm;
+        var draws = drawlist.draws;
+        var count = drawlist.index;
+        for (var i = 0; i < count; ++i) {
+            var d = draws[i];
             this.bind_buffer(d.buffer);
-            this.pgm.uniformMatrix4fv('m_obj', d.mat);
+            pgm.uniformMatrix4fv('m_obj', d.matrix);
             gl.drawArrays(gl.TRIANGLES, d.start, d.count);
-        });
+        }
     }
 
     draw_tile(tile_index, tx, ty, tz) {
@@ -356,16 +344,15 @@ export class Level {
         gl.disable(gl.CULL_FACE);
 
         // clear draws
-        this.draws.opaque = [];
-        this.draws.translucent = [];
+        //_.each(this.draws, dl => { dl.clear(); });
+
+        this.draws.opaque.clear();
+        this.draws.translucent.clear();
 
         // setup draws
         this.draw2(env);
 
-        $('#debug').text('' + this.draws.length);
-
-
-
+        $('#debug').text(`op: ${this.draws.opaque.index}  tl: ${this.draws.translucent.index}`);
 
         // draw opaque
         this.draw_models(this.draws.opaque);
@@ -379,6 +366,10 @@ export class Level {
 
         gl.depthMask(true);
         gl.disable(gl.BLEND);
+
+        // _.each(this.draws, (dl, k) => {
+        //     console.log(k, 'cap:', dl.draws.length, ' len:', dl.index, ' cre:', dl.created);
+        // });
     }
 
     draw2(env) {
