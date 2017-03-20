@@ -162,7 +162,7 @@ export class Level {
         return fetch_msgpack(url).then(data => {
             this.initialize(data);
             console.log(url);
-            return this.load_texture('d');
+            return this.load_texture('a');
         });
     }
 

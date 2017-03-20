@@ -34,7 +34,7 @@ void main() {
     N.z = -N.z;
 
     P = (m_obj * vec4(P, 1.0)).xyz;
-    N = (m_obj * vec4(N, 1.0)).xyz;
+    N = (m_obj * vec4(N, 0.0)).xyz;
 
     v_view = (view_pos - P);
     v_light = (light_pos - P);
@@ -47,6 +47,8 @@ void main() {
 }
 
 // tmd.fragment //
+
+/*
 #extension GL_OES_standard_derivatives : enable
 
 // magic normals
@@ -55,10 +57,12 @@ vec3 face_normal(vec3 pos) {
     vec3 fdy = dFdy(pos);
     return normalize(cross(fdx, fdy));
 }
+*/
 
 // FIXME lighting calc should be in vertex shader
 void main() {
-    vec3 N = face_normal(v_position);
+    //vec3 N = face_normal(v_position);
+    vec3 N = normalize(v_normal);
     vec3 V = normalize(v_view);
     vec3 L = normalize(v_light);
     vec3 H = normalize(L + V);
@@ -96,4 +100,6 @@ void main() {
         gl_FragColor.rgb = mix(fog_color, gl_FragColor.rgb, fog_factor);
         //gl_FragColor.r = fog_factor;
     }
+
+    //gl_FragColor.rgb = vec3(0.5*N + 0.5);
 }

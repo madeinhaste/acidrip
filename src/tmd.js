@@ -171,8 +171,8 @@ export class TMDObject {
 
                 if (prim.nv === 4) {
                     write_vertex(prim, 1);
-                    write_vertex(prim, 2);
                     write_vertex(prim, 3);
+                    write_vertex(prim, 2);
                 }
             });
         }
@@ -245,7 +245,7 @@ export class TMDObject {
                     vec3.normalize(n2, n2);
                     vec3.cross(n0, n1, n2);
                     vec3.normalize(n0, n0);
-                    vec3.scale(n0, n0, 4096);
+                    vec3.scale(n0, n0, -4096);      // ??? XXX not sure which dir
 
                     save_v(n0, dp + 8);
                     save_v(n0, dp + stride + 8);
