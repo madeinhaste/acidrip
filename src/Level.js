@@ -369,6 +369,7 @@ export class Level {
         var pgm = get_program('tiles').use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
         pgm.uniform2f('size', this.map.w, this.map.h);
+        pgm.uniform4f('color', 1, 1, 1, 0.1);
         if (!this.quad) {
             this.quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
         }

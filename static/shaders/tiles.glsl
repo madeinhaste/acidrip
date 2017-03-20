@@ -3,6 +3,7 @@ attribute vec2 coord;
 varying vec2 v_coord;
 uniform vec2 size;
 uniform mat4 m_vp;
+uniform vec4 color;
 
 // tiles.vertex //
 void main() {
@@ -42,6 +43,5 @@ void main() {
     //vec2 c = 1.0 - step(0.01, x);
     //float dd = max(c.x, c.y);
     float cc = grid(v_coord);
-    gl_FragColor.rgb = 0.8 * vec3(cc, cc, 0.0);
-    gl_FragColor.a = 1.0;
+    gl_FragColor = cc * color;
 }
