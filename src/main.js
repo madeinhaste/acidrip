@@ -552,6 +552,12 @@ window.main = function() {
         });
     }
     init_touch_events();
+
+    key('tab', function(e) {
+        level.use_frustum_tiles = !level.use_frustum_tiles;
+        $('#debug').text('use_frustum_tiles: '+ level.use_frustum_tiles);
+        e.preventDefault();
+    });
 }
 
 import {digitize_main} from './digitize-main';

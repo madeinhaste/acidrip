@@ -191,6 +191,9 @@ export class Level {
 
         // player
         this.player = null;
+        this.frustum_quad = new Float32Array(8);
+        this.frustum_tiles = [];
+        this.use_frustum_tiles = false;
     }
 
     save_areas() {
@@ -458,6 +461,9 @@ export class Level {
         if (!this.ready)
             return;
 
+        // calc frustum
+        this.calc_frustum();
+
         this.time = performance.now() / 1000;
 
         // reset bound buffer
@@ -529,27 +535,10 @@ export class Level {
         // });
     }
     
-    draw_frustum(env) {
-        if (!this.loop) {
-            this.loop = new_vertex_buffer(new Float32Array([
-                -1, -1, 0,
-                 1, -1, 0,
-                 1,  1, 0,
-                -1,  1, 0,
-            ]));
-        }
-
+    calc_frustum() {
         if (!this.player)
             return;
 
-        //this.player.get_matrix(mat, 1);
-        //mat4.rotateX(mat, mat, 0.5*Math.PI);
-        //mat4.identity(mat);
-        //mat4.translate(mat, mat, [ this.player.pos[0], 0, -this.player.pos[1], ]);
-        //mat4.rotate(mat, mat, 
-        //mat4.multiply(mat, env.camera.mvp, mat);
-
-        
         // create frustum polygon
         var imvp = this.player.inverse_mvp;
         var q = vec3.create();
@@ -571,51 +560,50 @@ export class Level {
         vec3.transformMat4(q, q, imvp);
         poly.push([ q[0], -q[2] ]);
 
-        var v = new Float32Array(3 * 4);
-        var pp = [];
         var dp = 0;
+        var out = this.frustum_quad;
         poly.forEach(q => {
-            v[dp++] = q[0];
-            v[dp++] = 0;
-            v[dp++] = -q[1];
-
-            pp.push(q[0], q[1]);
+            out[dp++] = q[0];
+            out[dp++] = q[1];
         });
-        //console.log(v);
-        bind_vertex_buffer(this.loop);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, v);
 
-        var tiles = rasterize(pp);
-        //console.log(tiles);
+        // rasterize it
+        this.frustum_tiles = rasterize(out);
+    }
+    
+    draw_frustum(env) {
+        if (!this.loop) {
+            this.loop = new_vertex_buffer(new Float32Array([ -1, -1, 0, 1, -1, 0, 1,  1, 0, -1,  1, 0, ]));
+        }
 
-        //console.log(_.flatten(poly));
-        ////
+        if (!this.player)
+            return;
 
-        //vec3.transformMat4(tmp, tmp, imvp);
-        //console.log(vec3.str(tmp));
+        mat4.identity(mat);
+        mat4.rotateX(mat, mat, -0.5*Math.PI);
+        mat4.multiply(mat, env.camera.mvp, mat);
 
-        var pgm = get_program('frustum').use();
-        pgm.uniformMatrix4fv('mvp', env.camera.mvp);
-        //pgm.uniformMatrix4fv('player_inverse_mvp', this.player.inverse_mvp);
+        var pgm = get_program('simple').use();
+
+        // draw the frustum quad
+
+        pgm.uniformMatrix4fv('mvp', mat);
         pgm.uniform4f('color', 1, 1, 0, 1);
 
         bind_vertex_buffer(this.loop);
-        pgm.vertexAttribPointer('position', 3, gl.FLOAT, false, 0, 0);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.frustum_quad);
+        pgm.vertexAttribPointer('position', 2, gl.FLOAT, false, 0, 0);
 
         gl.disable(gl.DEPTH_TEST);
         gl.drawArrays(gl.LINE_LOOP, 0, 4);
 
-
-
-        // draw the tiles
-        var pgm = get_program('simple').use();
-        pgm.uniform4f('color', 0, 1, 1, 1);
+        // draw the visible tiles
+        pgm.uniform4f('color', 0, 1, 1, 0.25);
         bind_vertex_buffer(this.quad);
         pgm.vertexAttribPointer('position', 2, gl.FLOAT, false, 0, 0);
 
+        var tiles = this.frustum_tiles;
         for (var i = 0; i < tiles.length; i += 2) {
-            //var tx = ~~this.player.pos[0];
-            //var ty = ~~this.player.pos[1];
             var tx = tiles[i + 0];
             var ty = tiles[i + 1];
 
@@ -656,10 +644,28 @@ export class Level {
         var map_h = this.map.h;
         var map_tiles = this.map.tiles;
         var tiles = this.tiles;
-        var sp = 0;
-        for (var ty = 0; ty < map_h; ++ty) {
-            for (var tx = 0; tx < map_w; ++tx) {
-                var tile_index = map_tiles[sp++];
+
+        if (!this.use_frustum_tiles) {
+            var sp = 0;
+            for (var ty = 0; ty < map_h; ++ty) {
+                for (var tx = 0; tx < map_w; ++tx) {
+                    var tile_index = map_tiles[sp++];
+
+                    if (tile_index === 0) {
+                        // empty tile
+                        continue;
+                    }
+
+                    this.draw_tile(tile_index, tx, ty, 0);
+                }
+            }
+        } else {
+            var frustum_tiles = this.frustum_tiles;
+            for (var i = 0; i < frustum_tiles.length; i += 2) {
+                var tx = frustum_tiles[i + 0];
+                var ty = frustum_tiles[i + 1];
+                var map_index = ty * map_w + tx;
+                var tile_index = map_tiles[map_index];
 
                 if (tile_index === 0) {
                     // empty tile
@@ -669,6 +675,8 @@ export class Level {
                 this.draw_tile(tile_index, tx, ty, 0);
             }
         }
+
+        // --- characters ---
 
         this.draw_character(CHARACTERS.corpse, 59.93, 38.0, 0.0, 3);
         this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 0);
