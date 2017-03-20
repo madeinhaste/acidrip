@@ -262,7 +262,11 @@ export class Level {
 
         const scale = 0.5/1024;
         mat4.identity(mat);
-        mat4.translate(mat, mat, [tx + 0.5, tz - tile.height, -ty + 0.5]);
+        mat4.translate(mat, mat, [
+            tx + 0.5,
+            tz - tile.height,
+            -(ty + 0.5)
+        ]);
         mat4.scale(mat, mat, [scale, scale, scale]);
         mat4.rotateY(mat, mat, -0.5 * tile.rotate * Math.PI);
 
@@ -275,6 +279,9 @@ export class Level {
     }
 
     draw_character(ch_index, tx, ty, tz, rotate) {
+        // FIXME
+        ty += 1;
+
         var now = performance.now();
         var t = Math.floor(now * 60 / 1000);
 
@@ -440,7 +447,7 @@ export class Level {
             return [null, 0];
         }
 
-        var map_index = (ty + 1) * map_w + tx;
+        var map_index = ty * map_w + tx;
         var tile_index = this.map.tiles[map_index];
         if (tile_index === 0)
             return [null, 0];
