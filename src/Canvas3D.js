@@ -1,26 +1,24 @@
 import Camera from './Camera';
 import {lerp, get_event_offset} from './utils';
-import {new_vertex_buffer, bind_vertex_buffer, get_program, new_texture, setup_canvas, VertexArray} from './webgl';
+import {new_vertex_buffer, bind_vertex_buffer, get_program, new_texture, setup_canvas} from './webgl';
+import {VertexArray} from './VertexArray';
 import {vec2, vec3, vec4, quat, mat4} from 'gl-matrix';
 
 
-var Canvas3D = (function() {
+function make_gl_matrix_temps(gl_matrix_type) {
+    var N_TEMPS = 16;
+    return _.times(N_TEMPS, gl_matrix_type.create);
+}
 
-    // pluggable cameras & lights...
+var temps = {
+    vec3: make_gl_matrix_temps(vec3),
+    vec4: make_gl_matrix_temps(vec4),
+    quat: make_gl_matrix_temps(quat),
+    mat4: make_gl_matrix_temps(mat4),
+};
 
-    function make_gl_matrix_temps(gl_matrix_type) {
-        var N_TEMPS = 16;
-        return _.times(N_TEMPS, gl_matrix_type.create);
-    }
-
-    var temps = {
-        vec3: make_gl_matrix_temps(vec3),
-        vec4: make_gl_matrix_temps(vec4),
-        quat: make_gl_matrix_temps(quat),
-        mat4: make_gl_matrix_temps(mat4),
-    };
-
-    function Canvas3D(opts) {
+export class Canvas3D {
+    constructor(opts) {
         var canvas = this.el = document.createElement('canvas');
 
         opts = opts || {};
@@ -119,18 +117,16 @@ var Canvas3D = (function() {
         this.on_camera_moved = function() {};
     }
 
-    Canvas3D.prototype.update_mouse = function(e) {
+    update_mouse(e) {
         var curr_pos = temps.vec3[0];
         get_event_offset(curr_pos, e);    // FIXME
 
         var mouse = this.mouse;
         vec2.sub(mouse.delta, curr_pos, mouse.pos);
         vec2.copy(mouse.pos, curr_pos);
+    }
 
-        //this.update_pick_ray();
-    };
-
-    Canvas3D.prototype.init_input = function() {
+    init_input() {
         var self = this;
         var el = this.el;
         var mouse = this.mouse;
@@ -230,22 +226,21 @@ var Canvas3D = (function() {
 
         // disable menu on right click
         el.addEventListener('contextmenu', function(e) { e.preventDefault() });
-    };
+    }
 
-    Canvas3D.prototype.redraw = function() {
+    redraw() {
         var self = this;
 
         if (!this.redraw_queued) {
             this.redraw_queued = true;
             requestAnimationFrame(function() { 
-                self._pick();
                 self._draw();
                 self.redraw_queued = false;
             });
         }
-    };
+    }
 
-    Canvas3D.prototype.check_resize = function() {
+    check_resize() {
         var canvas = this.el;
         var camera = this.camera;
 
@@ -255,15 +250,15 @@ var Canvas3D = (function() {
             gl.viewport(0, 0, canvas.width, canvas.height);
             vec4.copy(camera.viewport, gl.getParameter(gl.VIEWPORT));
         }
-    };
+    }
 
-    Canvas3D.prototype.reset_camera = function() {
+    reset_camera() {
         // TODO
         this.redraw();
-    };
+    }
 
     // this is being updated before a draw... maybe better after a camera modification
-    Canvas3D.prototype.update_camera = function() {
+    update_camera() {
         var orbit = this.orbit;
         var camera = this.camera;
 
@@ -284,9 +279,9 @@ var Canvas3D = (function() {
 
         // update camera
         this.camera.update(cam_pos, cam_dir);
-    };
+    }
 
-    Canvas3D.prototype._draw = function() {
+    _draw() {
         this.check_resize();
         this.update_camera();
 
@@ -298,121 +293,5 @@ var Canvas3D = (function() {
 
         // draw the thing
         this.draw();
-    };
-
-    // PICKING FRAMEBUFFER SETUP
-    var mvp_pick = mat4.create();
-    var pick_size = 4;
-    var pick_pixels = new Uint8Array((pick_size*pick_size) << 2);
-
-    var get_pick_framebuffer = (function() {
-        var fb = null;
-        var tex_color = null;
-        var rb_depth = null;
-
-        function create_pick_framebuffer() {
-            fb = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
-            var tex_color = new_texture({ size: pick_size });
-            gl.bindTexture(gl.TEXTURE_2D, tex_color);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex_color, 0);
-
-            var rb_depth = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, rb_depth);
-            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, pick_size, pick_size);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb_depth);
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        }
-
-        return function() {
-            if (!fb) create_pick_framebuffer();
-            return fb;
-        };
-    })();
-
-    Canvas3D.prototype._pick = function() {
-        if (!this._pick_request)
-            return;
-
-        this.update_camera();
-
-        // setup viewport & projection matrix
-        var vp = this.camera.viewport;
-        var mvp = mvp_pick;
-        var camera_mvp = this.camera.mvp;
-        var dx = pick_size;
-        var dy = pick_size;
-        var mx = this._pick_request.x;
-        var my = this._pick_request.y;
-
-        mat4.identity(mvp);
-        mat4.translate(mvp, mvp, [ (vp[2] - 2*(mx - vp[0])) / dx, -(vp[3] - 2*(my - vp[1])) / dy, 0]);
-        mat4.scale(mvp, mvp, [vp[2]/dx, vp[3]/dy, 1]);
-        mat4.multiply(mvp, mvp, camera_mvp);
-
-        // FIXME inv_mvp etc??
-        this.camera.mvp = mvp;
-
-        var fb = get_pick_framebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
-        gl.viewport(0, 0, pick_size, pick_size);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        // call the picking renderer
-        this.pick();
-
-        // read back pixels
-        gl.readPixels(0, 0, pick_size, pick_size, gl.RGBA, gl.UNSIGNED_BYTE, pick_pixels);
-
-        // reset drawing state
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(vp[0], vp[1], vp[2], vp[3]);
-        this.camera.mvp = camera_mvp;
-
-        // now find the most frequent id
-        var best_id = -1;
-        var best_count = 0;
-        var counts = {};
-        for (var i = 0; i < pick_pixels.length; i += 4) {
-            // alpha test
-            if (!pick_pixels[i + 3]) continue;
-
-            // object id from rgb
-            var id = (pick_pixels[i + 0] | (pick_pixels[i + 1] << 8) | (pick_pixels[i + 2] << 16));
-            var count = counts[id] || 0;
-            counts[id] = ++count;
-
-            if (count > best_count) {
-                best_id = id;
-                best_count = count;
-            }
-        }
-
-        var callback = this._pick_request.callback;
-        this._pick_request = null;
-
-        if (callback)
-            callback(best_id);
-    };
-
-    Canvas3D.prototype.request_pick = function(x, y, callback) {
-        this._pick_request = {
-            x: x,
-            y: y,
-            callback: callback
-        };
-        // FIXME don't need to redraw the entire scene on pick
-        // flag pick vs draw request
-        this.redraw();
-    };
-
-    return Canvas3D;
-
-}());
-
-export var Canvas3D;
+    }
+}
