@@ -136,12 +136,15 @@ class DrawList {
 
 const AREA_COLORS = {
     0: [0, 0, 0],
-    1: [255, 0, 0],
-    2: [0, 255, 0],
-    3: [0, 0, 255],
-    4: [255, 255, 0],
-    5: [255, 0, 255],
-    6: [0, 255, 255],
+    1: [255, 0, 0],         // red:         collide
+    2: [0, 255, 0],         // green:       
+    3: [0, 0, 255],         // blue:
+    4: [255, 255, 0],       // yellow:
+    5: [255, 0, 255],       // magenta:
+    6: [0, 255, 255],       // cyan:
+
+    7: [255, 128, 0],       // orange:
+    8: [0, 255, 128],       // teal:
 };
 
 export class Level {
@@ -401,7 +404,7 @@ export class Level {
 
         if (tile.next) {
             // draw further tiles in this location
-            this.draw_tile(tile.next, tx, ty, tz);
+            //this.draw_tile(tile.next, tx, ty, tz);
         }
     }
 

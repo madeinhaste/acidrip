@@ -198,7 +198,7 @@ window.main = function() {
         });
     }
 
-    for (var i = 0; i < 8; ++i) {
+    for (var i = 0; i <= 8; ++i) {
         bind_area_key(i);
     }
 
