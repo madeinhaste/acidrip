@@ -5,6 +5,7 @@ import {RAD_PER_DEG} from './utils';
 import {test_ray_triangle} from './raycast';
 import {fetch_msgpack, base64_encode, base64_decode} from './utils';
 import {simplex2} from './noise';
+import {rasterize} from './rasterize';
 
 const VERTEX_SIZE = 24;
 
@@ -177,6 +178,7 @@ export class Level {
 
         // quad buffer for tiles
         this.quad = null;
+        this.loop = null;
 
         // areas
         this.areas = null;
@@ -186,6 +188,9 @@ export class Level {
         this.save_areas_db = _.debounce(() => this.save_areas(), 1000);
         this.draw_debug = false;
         this.flicker = false;
+
+        // player
+        this.player = null;
     }
 
     save_areas() {
@@ -258,7 +263,7 @@ export class Level {
         return fetch_msgpack(url).then(data => {
             this.initialize(data);
             console.log(url);
-            return this.load_texture('c');
+            return this.load_texture('a');
         });
     }
 
@@ -511,8 +516,10 @@ export class Level {
         this.draw_models(this.draws.translucent);
 
         // debug tiles
-        if (this.draw_debug)
+        if (this.draw_debug) {
             this.draw_tiles_debug(env);
+            this.draw_frustum(env);
+        }
 
         gl.depthMask(true);
         gl.disable(gl.BLEND);
@@ -520,6 +527,106 @@ export class Level {
         // _.each(this.draws, (dl, k) => {
         //     console.log(k, 'cap:', dl.draws.length, ' len:', dl.index, ' cre:', dl.created);
         // });
+    }
+    
+    draw_frustum(env) {
+        if (!this.loop) {
+            this.loop = new_vertex_buffer(new Float32Array([
+                -1, -1, 0,
+                 1, -1, 0,
+                 1,  1, 0,
+                -1,  1, 0,
+            ]));
+        }
+
+        if (!this.player)
+            return;
+
+        //this.player.get_matrix(mat, 1);
+        //mat4.rotateX(mat, mat, 0.5*Math.PI);
+        //mat4.identity(mat);
+        //mat4.translate(mat, mat, [ this.player.pos[0], 0, -this.player.pos[1], ]);
+        //mat4.rotate(mat, mat, 
+        //mat4.multiply(mat, env.camera.mvp, mat);
+
+        
+        // create frustum polygon
+        var imvp = this.player.inverse_mvp;
+        var q = vec3.create();
+        var poly = [];
+
+        vec3.set(q, -1, 0, -1);
+        vec3.transformMat4(q, q, imvp);
+        poly.push([ q[0], -q[2] ]);
+
+        vec3.set(q,  1, 0, -1);
+        vec3.transformMat4(q, q, imvp);
+        poly.push([ q[0], -q[2] ]);
+
+        vec3.set(q,  1, 0,  1);
+        vec3.transformMat4(q, q, imvp);
+        poly.push([ q[0], -q[2] ]);
+
+        vec3.set(q, -1, 0,  1);
+        vec3.transformMat4(q, q, imvp);
+        poly.push([ q[0], -q[2] ]);
+
+        var v = new Float32Array(3 * 4);
+        var pp = [];
+        var dp = 0;
+        poly.forEach(q => {
+            v[dp++] = q[0];
+            v[dp++] = 0;
+            v[dp++] = -q[1];
+
+            pp.push(q[0], q[1]);
+        });
+        //console.log(v);
+        bind_vertex_buffer(this.loop);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, v);
+
+        var tiles = rasterize(pp);
+        //console.log(tiles);
+
+        //console.log(_.flatten(poly));
+        ////
+
+        //vec3.transformMat4(tmp, tmp, imvp);
+        //console.log(vec3.str(tmp));
+
+        var pgm = get_program('frustum').use();
+        pgm.uniformMatrix4fv('mvp', env.camera.mvp);
+        //pgm.uniformMatrix4fv('player_inverse_mvp', this.player.inverse_mvp);
+        pgm.uniform4f('color', 1, 1, 0, 1);
+
+        bind_vertex_buffer(this.loop);
+        pgm.vertexAttribPointer('position', 3, gl.FLOAT, false, 0, 0);
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.drawArrays(gl.LINE_LOOP, 0, 4);
+
+
+
+        // draw the tiles
+        var pgm = get_program('simple').use();
+        pgm.uniform4f('color', 0, 1, 1, 1);
+        bind_vertex_buffer(this.quad);
+        pgm.vertexAttribPointer('position', 2, gl.FLOAT, false, 0, 0);
+
+        for (var i = 0; i < tiles.length; i += 2) {
+            //var tx = ~~this.player.pos[0];
+            //var ty = ~~this.player.pos[1];
+            var tx = tiles[i + 0];
+            var ty = tiles[i + 1];
+
+            mat4.identity(mat);
+            mat4.translate(mat, mat, [tx, 0, -ty]);
+            mat4.rotateX(mat, mat, -0.5 * Math.PI);
+            mat4.multiply(mat, env.camera.mvp, mat);
+            pgm.uniformMatrix4fv('mvp', mat);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
     }
 
     draw_tiles_debug(env) {

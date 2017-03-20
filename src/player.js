@@ -1,5 +1,6 @@
 import {vec3, mat4} from 'gl-matrix';
 import {get_program, new_vertex_buffer, bind_vertex_buffer} from './webgl';
+import {clamp} from './utils';
 
 export class Player {
     constructor() {
@@ -11,6 +12,15 @@ export class Player {
         this.level = null;
         this.collide = true;
         this.area = 0;
+
+        this.mvp = mat4.create();
+        this.inverse_mvp = mat4.create();
+
+        this.touch = {
+            rotate: 0,
+            rotating: false,
+            advance: 0
+        };
     }
 
     move(x, y, z) {
@@ -81,7 +91,7 @@ export class Player {
         var pgm = get_program('simple').use();
 
         var mat = this.mat;
-        this.get_matrix(mat);
+        this.get_matrix(mat, 0.5/1024);
         mat4.multiply(mat, env.camera.mvp, mat);
 
         pgm.uniformMatrix4fv('mvp', mat);
@@ -92,11 +102,10 @@ export class Player {
         gl.drawArrays(gl.TRIANGLES, 0, this.geom.count);
     }
 
-    get_matrix(mat) {
+    get_matrix(mat, scale) {
         var tx = this.pos[0];
         var ty = this.pos[1];
         var tz = this.pos[2];
-        var scale = 0.5/1024;
         mat4.identity(mat);
         mat4.translate(mat, mat, [tx, tz, -ty]);
         mat4.scale(mat, mat, [scale, scale, scale]);
@@ -145,8 +154,6 @@ export class Player {
     }
 
     check_keys() {
-        var dirty = false;
-
         var rotate_speed = 1/64;
         var advance_speed = 0.1;
 
@@ -160,24 +167,30 @@ export class Player {
 
         if (key.isPressed('left')) {
             this.rotate(-rotate_speed);
-            dirty = true;
         }
 
         if (key.isPressed('right')) {
             this.rotate(rotate_speed);
-            dirty = true;
         }
 
         if (key.isPressed('up')) {
             this.advance(advance_speed);
-            dirty = true;
         }
 
         if (key.isPressed('down')) {
             this.advance(-advance_speed);
-            dirty = true;
         }
 
-        return dirty;
+        // touch stuff
+        this.rotate(this.touch.rotate);
+        if (!this.touch.rotating) {
+            this.touch.rotate *= 0.2;
+            this.touch.advance *= 0.2;
+        }
+
+        if (Math.abs(this.touch.advance) > 0.1) {
+            var a = clamp(this.touch.advance, -advance_speed, advance_speed);
+            this.advance(a);
+        }
     }
 }

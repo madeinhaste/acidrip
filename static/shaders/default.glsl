@@ -61,3 +61,32 @@ void main() {
 void main() {
     gl_FragColor = color;
 }
+
+
+
+
+// frustum //
+attribute vec3 position;
+uniform mat4 mvp;
+uniform mat4 player_inverse_mvp;
+uniform vec4 color;
+
+// frustum.vertex //
+void main() {
+    /* vec3 P; */
+    /* P.x = position.x; */
+    /* P.y = 0.0; */
+    /* P.z = position.y; */
+
+    /* vec4 Pw = (player_inverse_mvp * vec4(P, 1.0)); */
+    /* P = Pw.xyz / Pw.w; */
+    /* P.y = 0.0; */
+
+    vec3 P = position;
+    gl_Position = mvp * vec4(P, 1.0);
+}
+
+// frustum.fragment //
+void main() {
+    gl_FragColor = color;
+}

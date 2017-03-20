@@ -32,7 +32,7 @@ window.main = function() {
         siren: get_sound('siren', false),
         plane_splash: get_sound('plane_splash', false),
     };
-    sounds.intro.play();
+    //sounds.intro.play();
 
     var canvas = new Canvas3D({
         antialias: false,
@@ -44,7 +44,7 @@ window.main = function() {
     });
     console.assert(gl);
 
-    canvas.camera.far = 1000;
+    canvas.camera.far = 10;
     canvas.camera.near = 0.01;
     canvas.camera.fov = 30;
     canvas.light_pos = vec3.fromValues(100, 100, 100);
@@ -132,6 +132,7 @@ window.main = function() {
     var level = new Level;
     level.load(5).then(() => {
         player.level = level;
+        level.player = player;  // XXX
         init_player_state();
     });
 
@@ -331,12 +332,25 @@ window.main = function() {
         if (player_cam.enabled) {
             player_cam.update();
 
+            this.camera.far = 10;
+            //this.camera.near = 0.01;
+            this.camera.near = 0.5;
+            this.camera.ortho = false;
+            this.camera.update_quat(player_cam.pos, player_cam.dir);
+
+            // copy mvp to player for debug
+            mat4.copy(player.mvp, this.camera.mvp);
+            mat4.copy(player.inverse_mvp, this.camera.inv_mvp);
+
             if (player_cam.aerial) {
+                this.camera.far = 1000;
+                this.camera.near = 0.01;
+
+                // overwrite camera
                 this.camera.ortho = player_cam.ortho ? (0.5*player_cam.aerial_pos[1] - 10) : 0;
                 this.camera.update_quat(player_cam.aerial_pos, player_cam.aerial_dir);
             } else {
                 this.camera.ortho = 0;
-                this.camera.update_quat(player_cam.pos, player_cam.dir);
             }
         } else {
             this.camera.ortho = 0;
@@ -440,6 +454,104 @@ window.main = function() {
             level.plane_start = performance.now();
         }
     }
+
+    function init_touch_events() {
+        function get_event_pos(out, e) {
+            var rect = e.target.getBoundingClientRect();
+            if (typeof e.pageX == 'undefined') {
+                e = (e.targetTouches[0] ||
+                     e.changedTouches[0]);
+            }
+
+            if (!e) {
+                out[0] = 0;
+                out[1] = 0;
+                return;
+            }
+
+            out[0] = e.pageX - rect.left;
+            out[1] = e.pageY - rect.top;
+        }
+
+        var mouse = {
+            start: vec2.create(),
+            first: vec2.create(),
+            last: vec2.create(),
+            curr: vec2.create(),
+            delta: vec2.create(),
+            button: -1,
+            touches: 0,
+
+            down: function(e) {
+                get_event_pos(this.start, e);
+                vec2.copy(this.curr, this.start);
+                vec2.copy(this.last, this.curr);
+                vec2.copy(this.first, this.curr);
+                vec2.sub(this.delta, this.curr, this.last);
+
+                if (e.button === undefined) {
+                    // touches
+                    var n = e.targetTouches.length;
+                    this.button = { 1: 0, 2: 2, 3: 1 }[n];
+                    this.touches = n;
+                } else {
+                    this.button = e.button;
+                    this.touches = 0;
+                }
+            },
+
+            move: function(e) {
+                vec2.copy(this.last, this.curr);
+                get_event_pos(this.curr, e);
+                vec2.sub(this.delta, this.curr, this.last);
+            },
+
+            up: function(e) {
+                vec2.copy(this.last, this.curr);
+                get_event_pos(this.curr, e);
+                vec2.sub(this.delta, this.curr, this.last);
+                this.button = -1;
+            },
+            
+            drag: false
+        };
+
+        canvas.el.addEventListener('touchstart', function(e) {
+            //$('#debug').text('touchstart: ' + vec2.str(mouse.delta));
+            mouse.down(e);
+            mouse.drag = true;
+            e.preventDefault();
+        });
+
+        canvas.el.addEventListener('touchmove', function(e) {
+            if (!mouse.drag)
+                return;
+
+            mouse.move(e);
+
+            var dx = mouse.curr[0] - mouse.first[0];
+            var dy = mouse.curr[1] - mouse.first[1];
+            //console.log(dx);
+
+            const rotate_speed = 0.0001;
+            //player.touch.rotate = rotate_speed * mouse.delta[0];
+            player.touch.rotate = rotate_speed * dx;
+            player.touch.rotating = true;
+            player.touch.advance = -0.001 * dy;
+
+            //$('#debug').text('delta: ' + vec2.str(mouse.delta));
+        });
+
+        canvas.el.addEventListener('touchend', function(e) {
+            if (!mouse.drag)
+                return;
+
+            mouse.drag = false;
+            mouse.up(e);
+            player.touch.rotating = false;
+        });
+    }
+    init_touch_events();
 }
 
 import {digitize_main} from './digitize-main';
