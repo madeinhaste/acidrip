@@ -113,7 +113,7 @@ export class Canvas3D {
             button: -1
         };
 
-        this.redraw();
+        //this.redraw();
         this.on_camera_moved = function() {};
     }
 

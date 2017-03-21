@@ -19,6 +19,22 @@ function get_sound(path, loop) {
 }
 
 window.main = function() {
+    const links = [
+        {
+            name: '3ww',
+            url: 'https://alt-j.lnk.to/3wwPR',
+            visited: false,
+            pos: [59, 0.5]
+        },
+
+        {
+            name: 'relaxer',
+            url: 'https://alt-j.lnk.to/RelaxerPR',
+            visited: false,
+            pos: [44, 25]
+        },
+    ];
+
     var sounds = {
         intro: get_sound('3ww_intro', true),
         howl1: get_sound('howl1', false),
@@ -31,8 +47,8 @@ window.main = function() {
         screech: get_sound('screech_and_bump', false),
         siren: get_sound('siren', false),
         plane_splash: get_sound('plane_splash', false),
+        door_open: get_sound('door_open', false),
     };
-    //sounds.intro.play();
 
     var canvas = new Canvas3D({
         antialias: false,
@@ -70,8 +86,8 @@ window.main = function() {
 
         if (area == 2) {
             //var s = _.sample([sounds.howl1, sounds.howl2]);
-            var s = sounds.brass1;
-            s.play();
+            //var s = sounds.brass1;
+            //s.play();
         }
 
         if (area == 5) {
@@ -104,9 +120,9 @@ window.main = function() {
 
         if (area == 2) {
             //var s = _.sample([sounds.howl1, sounds.howl2]);
-            var s = sounds.brass1;
-            s.play();
-            lyrics.neon.start();
+            //var s = sounds.brass1;
+            //s.play();
+            //lyrics.neon.start();
         }
 
         if (area == 5) {
@@ -159,19 +175,43 @@ window.main = function() {
         speed: 0.5
     });
 
+    var paused = false;
+
+    function start() {
+        sounds.intro.play();
+        animate();
+    }
+
+    function pause() {
+        paused = true;
+    }
+
+    function clear() {
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+
+    function resume() {
+        if (paused) {
+            paused = false;
+            animate();
+        }
+    }
+
     function animate() {
-        requestAnimationFrame(animate);
-        // if (player.check_keys())
-        //     canvas.redraw();
+        if (!paused)
+            requestAnimationFrame(animate);
+
         player.check_keys();
         update_ghost();
         update_plane();
+        update_links();
         canvas._draw();
     }
-    animate();
+    //animate();
 
     // connect window resize event
-    window.onresize = function() { canvas.redraw() };
+    //window.onresize = function() { canvas.redraw() };
 
     function hex(x, n=2) {
         return padl(x.toString(16), n);
@@ -403,7 +443,7 @@ window.main = function() {
     }
 
     key('r', function() {
-        vec3.set(player.pos, 60.5, 40.0, 0.5);
+        vec3.set(player.pos, 60.5, 41.0, 0.5);
         player.dir = 1;
     });
 
@@ -450,9 +490,59 @@ window.main = function() {
         var dir = Math.round(player.dir) % 4;
         //console.log(px, py, dir);
         if (px == 79 && py == 86 && dir == 3) {
+            console.log('PLANE!');
             sounds.plane_splash.play();
             level.plane_start = performance.now();
         }
+    }
+
+    function open_link(link) {
+        $('.linkbox iframe').attr('src', link.url);
+        $('.linkbox').css({ display: 'block' });
+
+        pause();
+        requestAnimationFrame(clear);
+        sounds.door_open.play();
+    }
+
+    $('iframe').on('load', function() {
+        $('.linkbox').css({ display: 'block', opacity: 1 });
+    });
+
+    $('button.close').on('click', function() {
+        resume();
+        $('.linkbox').css({ display: 'none', opacity: 0 });
+    });
+
+    $('button.enter').on('click', function() {
+        $('.infobox').hide();
+        start();
+    });
+
+    key('l', function() {
+        open_link(links[0]);
+    });
+     
+    function update_links() {
+        links.forEach(link => {
+            if (link.visited)
+                return;
+
+            var dist = vec2.dist(player.pos, link.pos);
+            if (dist > 1)
+                return;
+
+            link.visited = true;
+            open_link(link);
+
+            if (link.name == '3ww') {
+                // FIXME flash
+                player.dir = 3;
+            }
+
+            //openTab(link.url);
+            //window.open(link.url);
+        });
     }
 
     function init_touch_events() {
