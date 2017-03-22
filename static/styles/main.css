@@ -1,7 +1,22 @@
+@font-face {
+    font-family: mn-mono;
+    src: url('../fonts/MaisonNeue-Mono.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/MaisonNeue-Mono.woff') format('woff'),
+         url('../fonts/MaisonNeue-Mono.ttf') format('truetype'),
+         url('../fonts/MaisonNeue-Mono.svg#MaisonNeue-Mono') format('svg');j
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
     background-color: #000;
     color: #ebebeb;
-    font: 19px Cousine;
+    font: 16px mn-mono;
+}
+
+a {
+    color: #ebebeb;
+    text-decoration: none;
 }
 
 .frame {
@@ -14,6 +29,30 @@ body {
     border: 1px solid white;
     overflow: hidden;
 
+}
+
+footer {
+    position: absolute;
+    left: 75px;
+    right: 75px;
+    bottom: 0;
+    height: 45px;
+    //background-color: red;
+    padding-top: 30px;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    display: inline-block;
+    margin: 0;
+}
+
+li.menu-item:hover {
+    border-bottom: 1px solid white;
 }
 
 img.logo {
@@ -37,12 +76,27 @@ img.logo {
         top: 50px;
         left: 20px;
         right: 20px;
-        bottom: 20px;
+        bottom: 50px;
     }
 
     img.logo {
         top: 15px;
         height: 22px;
+    }
+
+    footer {
+        left: 25px;
+        right: 25px;
+        height: 35px;
+        padding-top: 25px;
+    }
+
+    .site-navigation {
+        text-align: center;
+    }
+
+    .social-links {
+        display: none;
     }
 }
 
@@ -66,6 +120,10 @@ img.logo {
         top: 15px;
         height: 22px;
     }
+
+    footer {
+        display: none;
+    }
 }
 
 .infobox {
@@ -77,6 +135,8 @@ img.logo {
 
 .info {
     text-align: center;
+    max-width: 300px;
+    line-height: 1.5;
 }
 
 .arrows {
@@ -87,9 +147,9 @@ img.logo {
 button {
     background-color: transparent;
     border: 1px solid white;
-    font: 19px Cousine;
+    font: 16px mn-mono;
     width: 303px;
-    padding: 12px 0;
+    padding: 14px 0;
     color: #ebebeb;
     transition: all linear 200ms;
 }
@@ -143,5 +203,22 @@ button.close {
     top: 5px;
     left: 5px;
     color: red;
-    font: 25px Cousine;
+    font: 25px mn-mono;
+}
+
+.social-links {
+    position: relative;
+    top: -8px;
+    float: right;
+    font-size: 24px;
+    padding: 0;
+    margin: 0;
+}
+
+.social-links a {
+    color: #777;
+}
+
+.social-links a:hover {
+    color: #ebebeb;
 }
