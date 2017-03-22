@@ -31,14 +31,16 @@ window.main = function() {
             name: '3ww',
             url: 'https://alt-j.lnk.to/3wwPR',
             visited: false,
-            pos: [59, 0.5]
+            pos: [59, 0.5],
+            respawn: [59.6, 4.6, 3.0]
         },
 
         {
             name: 'relaxer',
             url: 'https://alt-j.lnk.to/RelaxerPR',
             visited: false,
-            pos: [32, 74]
+            pos: [32, 74],
+            respawn: [34.8, 77.4, 1.3]
         },
     ];
 
@@ -500,7 +502,7 @@ window.main = function() {
 
     function init_player_state() {
         reset_player_state();
-        //load_player_state();
+        load_player_state();
         //setInterval(save_player_state, 500);
     }
 
@@ -584,15 +586,15 @@ window.main = function() {
             if (dist > 1)
                 return;
 
-            link.visited = true;
+            //link.visited = true;
             open_link(link);
 
-            if (link.name == '3ww') {
-                // FIXME flash
-                setTimeout(function() {
-                    player.dir = 3;
-                }, 500);
-            }
+            // FIXME use fade
+            setTimeout(function() {
+                player.pos[0] = link.respawn[0];
+                player.pos[1] = link.respawn[1];
+                player.dir = link.respawn[2];
+            }, 500);
 
             //openTab(link.url);
             //window.open(link.url);
@@ -709,9 +711,10 @@ window.main = function() {
 
     function init_keys() {
         key('p', function() {
-            var tx = ~~player.pos[0];
-            var ty = ~~player.pos[1];
-            $('#debug').text(`${tx},${ty}`);
+            var tx = player.pos[0].toFixed(1);
+            var ty = player.pos[1].toFixed(1);
+            var dir = player.dir;
+            $('#debug').text(`${tx},${ty},${dir}`);
         });
 
         key('a', function() {
@@ -759,7 +762,10 @@ window.main = function() {
         key('l', function() {
             open_link(links[0]);
         });
+
+        key('s', save_player_state);
     }
+    init_keys();
 
     return {
         start,
