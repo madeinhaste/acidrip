@@ -184,7 +184,7 @@ window.main = function() {
 
     var lyrics = {
         campfire: new Lyric('data/lyric-campfire2.msgpack'),
-        neon: new Lyric('data/lyric-neon.msgpack'),
+        neon: new Lyric('data/lyric-neon2.msgpack'),
     };
 
     lyrics.campfire.setup({

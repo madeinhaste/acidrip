@@ -141,6 +141,7 @@ img.logo {
 }
 
 .arrows {
+    font-family: sans-serif;
     font-size: 50px;
     margin: 8px 0;
 }
