@@ -12,6 +12,7 @@ body {
     background-color: #000;
     color: #ebebeb;
     font: 16px mn-mono;
+    overflow: hidden;
 }
 
 a {
