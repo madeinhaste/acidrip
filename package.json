@@ -12,7 +12,8 @@
     "scripts": {
         "build": "webpack --config webpack.config.js",
         "serve": "webpack-dev-server -d",
-        "bsync": "browser-sync --config bs-config.js start"
+        "bsync": "browser-sync --config bs-config.js start",
+        "rollup": "rollup -c rollup.config.build.js"
     },
     "dependencies": {
         "babel-core": "^6.24.0",

@@ -7,5 +7,5 @@ module.exports = {
             '/assets': 'dist'
         },
     },
-    port: 9000
+    port: 8000
 };
