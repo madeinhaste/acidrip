@@ -40,27 +40,10 @@ window.main = function() {
         },
     ];
 
-    /*
-    var sounds = {
-        intro: new Howl({
-            src: [
-                'sounds/3ww_intro.webm',
-                'sounds/3ww_intro.mp3',
-            ],
-            loop: true,
-            preload: true
-        })
-    };
-    */
-
     var sounds = {
         intro: get_sound('3ww_intro', true)
     };
 
-    sounds.intro.on('load', function() {
-        $('.debug').text(sounds.intro.state());
-    });
-    
     function load_sounds() {
         Object.assign(sounds, {
             howl1: get_sound('howl1', false),
@@ -75,7 +58,6 @@ window.main = function() {
             plane_splash: get_sound('plane_splash', false),
             door_open: get_sound('door_open', false),
         });
-        console.log('SOUNDS:', sounds);
     }
 
     var canvas = new Canvas3D({
@@ -107,8 +89,6 @@ window.main = function() {
 
     var player = new Player;
     vec3.set(player.pos, 60.5, 40.0, 0.5);
-    //vec3.set(player.pos, 37, 26, 0.5);
-    //vec3.set(player.pos, 80.2591323852539, 95.85198974609375, 0.5)
     player.dir = 1;
     player.collide = true;
 
@@ -211,33 +191,9 @@ window.main = function() {
     var paused = false;
 
     function start() {
-        //$('.debug').text(sounds.intro.state());
-        //console.log(sounds.intro.state());
-            
-        /*
-        var s = sounds.intro;
-        if (s.state() == 'loaded')
-            s.play();
-        else
-            s.once('load', () => s.play());
-            */
-        //setInterval(function() { sounds.intro.volume(1); }, 1000);
-        var s = sounds.intro;
-        if (s.state() == 'loading')
-            s.once('load', () => s.play());
-        else
-            s.play();
-
-        //sounds.intro.play();
-        //sounds.intro.play();
-        //document.querySelector('audio').play();
+        sounds.intro.play();
         animate();
     }
-
-    $('.debug').on('touchstart', function() {
-        sounds.intro.play();
-        $('.debug').text('OK: ' + sounds.intro.state());
-    });
 
     function pause() {
         paused = true;
@@ -699,12 +655,6 @@ window.main = function() {
         });
     }
     init_touch_events();
-
-    key('tab', function(e) {
-        level.use_frustum_tiles = !level.use_frustum_tiles;
-        $('#debug').text('use_frustum_tiles: '+ level.use_frustum_tiles);
-        e.preventDefault();
-    });
 
     load_sounds();
 
