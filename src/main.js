@@ -707,6 +707,10 @@ window.main = function() {
     });
 
     load_sounds();
+
+    return {
+        start
+    };
 }
 
 //import {digitize_main} from './digitize-main';

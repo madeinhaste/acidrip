@@ -4,93 +4,12 @@
         <meta charset="utf-8">
         <title>alt-j</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
         <link href="https://fonts.googleapis.com/css?family=Cousine" rel="stylesheet">
 
         <style>
             body {
                 background-color: #000;
-                color: #ebebeb;
-                font: 19px Cousine;
-            }
-
-            .frame {
-                position: absolute;
-                top: 75px;
-                left: 75px;
-                right: 75px;
-                bottom: 75px;
-
-                border: 1px solid white;
-                overflow: hidden;
-
-            }
-
-            img.logo {
-                position: absolute;
-                top: 22px;
-                left: 50%;
-                transform: translate(-50%, 0);
-                height: 33px;
-                z-index: 100;
-            }
-
-            @media
-                (max-width: 400px) and (orientation: portrait),
-                (max-height: 400px) and (orientation: landscape)
-            {
-                body {
-                    font-size: 80%;
-                }
-
-                .frame {
-                    border: none;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                }
-
-                img.logo {
-                    top: 15px;
-                    height: 22px;
-                }
-            }
-
-            .infobox {
-                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .info {
-                text-align: center;
-            }
-
-            .arrows {
-                font-size: 50px;
-                margin: 8px 0;
-            }
-
-            button {
-                background-color: transparent;
-                border: 1px solid white;
-                font: 19px Cousine;
-                width: 303px;
-                padding: 12px 0;
-                color: #ebebeb;
-                transition: all linear 200ms;
-            }
-
-            button.enter {
-                margin-top: 50px;
-            }
-
-            button:hover {
-                background-color: #ebebeb;
-                color: black;
-                cursor: pointer;
+                color: #eee;
             }
 
             canvas.webgl {
@@ -99,70 +18,26 @@
                 transition: opacity 7s linear;
             }
 
-            .linkbox {
-                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                overflow-y: scroll;
-                -webkit-overflow-scrolling: touch;
-
-                display: none;
-                opacity: 0;
-                transition: opacity 3s linear;
-
-                z-index: 100;
-            }
-
-            iframe {
-                border: 0;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-            }
-
-            button.close {
-                position: absolute; top: 10px; left: 10px;
-                width: 100px;
+            canvas.texture {
+                position: absolute; top: 0; left: 0;
                 border: 1px solid white;
-                text-align: center;
             }
 
-            .debug {
+            #debug {
+                white-space: pre-line;
                 position: absolute;
-                top: 5px;
-                left: 5px;
-                color: red;
-                font: 30px Cousine;
+                top: 10px;
+                left: 10px;
+                color: #fff;
+                font: 16px 'Ubuntu Mono'
             }
         </style>
     </head>
 
     <body>
-        <img src="images/logo.png" class="logo">
-        <div id="main" class="frame">
-            <div class="infobox">
-                <div class="info">
-                    Use your arrow keys to explore.<br/>
-                    <div class="arrows">← ↑ → ↓</div>
-                    (Or touch and drag if you're short of a keyboard)<br/>
-                    <button class="enter">Enter</button>
-                    <button class="pause">Pause</button>
-                </div>
-            </div>
-
-            <div class="linkbox">
-                <iframe src=""></iframe>
-                <button class="close">Resume</button>
-            </div>
+        <div id="main">
+            <div id="debug"></div>
         </div>
-
-        <div class="debug"></div>
-
-        <!--
-        <audio loop preload>
-            <source src="sounds/3ww_intro.ogg" type="audio/ogg">
-            <source src="sounds/3ww_intro.mp3" type="audio/mp3">
-            <source src="sounds/3ww_intro.m4a" type="audio/m4a">
-        </audio>
-        -->
 
         <script src="scripts/vendor/jquery-3.1.1.min.js"></script>
         <script src="scripts/vendor/lodash.min.js"></script>
@@ -176,90 +51,11 @@
         <script src="scripts/polyfills/performance.js"></script>
 
         <script src="assets/main.bundle.js"></script>
-        <script> $(main); </script>
-
-        <!--
         <script>
             $(function() {
-                /*
-                var sound = new Howl({
-                    //src: 'sounds/3ww_intro.m4a',
-                    src: 'sounds/door_open.m4a',
-                    loop: false
-                });
-
-                sound.on('load', function() {
-                    $('button.enter').text('PLAY');
-                    console.log('LOADED');
-                });
-                */
-
-                var loop = document.querySelector('audio');
-
-                /*
-                loop.volume = 0;
-                if (loop.volume !== 0) {
-                    $('.debug').text('iOS');
-                } else {
-                    loop.volume = 1;
-                }
-                */
-
-                var ctx = new (window.AudioContext || window.webkitAudioContext);
-                var source = ctx.createMediaElementSource(loop);
-                var gain = ctx.createGain();
-                source.connect(gain);
-                gain.connect(ctx.destination);
-
-                var fade_to = 1;
-                var volume = 1;
-
-                function lerp(x, y, a) {
-                    return (1-a)*x + a*y;
-                }
-
-                function animate() {
-                    requestAnimationFrame(animate);
-
-                    if (volume !== fade_to) {
-                        var d = Math.abs(volume - fade_to);
-                        if (d < 0.01) {
-                            volume = fade_to;
-                        } else {
-                            volume = lerp(volume, fade_to, 0.10);
-                        }
-                        gain.gain.value = volume;
-                        //loop.volume = volume;
-                        console.log('volume:', volume);
-                    }
-                }
-
-                $('button.enter').on('click', function(e) {
-                    /*
-                    if (loop.paused) {
-                        console.log('play');
-                        loop.play();
-                        animate();
-                    }
-
-                    */
-                    //sound.play();
-                    //setTimeout(function() { sound.play(); }, 3000);
-                    if (loop.paused) {
-                        console.log('play');
-                        loop.play();
-                        animate();
-                    }
-
-                    fade_to = 1;
-                    //loop.play();
-                });
-
-                $('button.pause').on('click', function(e) {
-                    fade_to = 0;
-                });
+                var o = main();
+                o.start();
             });
         </script>
-        -->
     </body>
 </html>

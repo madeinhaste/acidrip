@@ -7,15 +7,6 @@ import {fetch_msgpack, fetch_msgpack_gz, base64_encode, base64_decode} from './u
 import {simplex2} from './noise';
 import {rasterize} from './rasterize';
 
-/*
-function frustum_vec2_transformMat4(q, x, y) {
-    var w =  m[3]*q[0] + m[11]*q[2] + m[15]
-    var x = (m[0]*q[0] + m[ 8]*q[2] + m[12]) / w;
-    var y = (m[2]*q[0] + m[10]*q[2] + m[14]) / w;
-    return [x, -y];
-}
-*/
-
 var tmp = vec3.create();
 function calc_frustum_vertex(out, dp, imvp, x, z) {
     tmp[0] = x;

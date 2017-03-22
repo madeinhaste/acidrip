@@ -1,0 +1,124 @@
+body {
+    background-color: #000;
+    color: #ebebeb;
+    font: 19px Cousine;
+}
+
+.frame {
+    position: absolute;
+    top: 75px;
+    left: 75px;
+    right: 75px;
+    bottom: 75px;
+
+    border: 1px solid white;
+    overflow: hidden;
+
+}
+
+img.logo {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    height: 33px;
+    z-index: 100;
+}
+
+@media
+    (max-width: 400px) and (orientation: portrait),
+    (max-height: 400px) and (orientation: landscape)
+{
+    body {
+        font-size: 80%;
+    }
+
+    .frame {
+        border: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    img.logo {
+        top: 15px;
+        height: 22px;
+    }
+}
+
+.infobox {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info {
+    text-align: center;
+}
+
+.arrows {
+    font-size: 50px;
+    margin: 8px 0;
+}
+
+button {
+    background-color: transparent;
+    border: 1px solid white;
+    font: 19px Cousine;
+    width: 303px;
+    padding: 12px 0;
+    color: #ebebeb;
+    transition: all linear 200ms;
+}
+
+button.enter {
+    margin-top: 50px;
+}
+
+button:hover {
+    background-color: #ebebeb;
+    color: black;
+    cursor: pointer;
+}
+
+canvas.webgl {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 1;
+    transition: opacity 7s linear;
+}
+
+.linkbox {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+
+    display: none;
+    opacity: 0;
+    transition: opacity 3s linear;
+
+    z-index: 100;
+}
+
+iframe {
+    border: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+button.close {
+    position: absolute; top: 10px; left: 10px;
+    width: 100px;
+    border: 1px solid white;
+    text-align: center;
+}
+
+.debug {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    color: red;
+    font: 30px Cousine;
+}

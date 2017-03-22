@@ -2,45 +2,38 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>(lsd:20/3)</title>
-
-        <style>
-            body {
-                background-color: #000;
-                color: #eee;
-            }
-
-            canvas.webgl {
-                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                opacity: 1;
-                transition: opacity 7s linear;
-            }
-
-            canvas.texture {
-                position: absolute; top: 0; left: 0;
-                border: 1px solid white;
-            }
-
-            #debug {
-                white-space: pre-line;
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                color: #fff;
-                font: 16px 'Ubuntu Mono'
-            }
-        </style>
+        <title>alt-j</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <link href="https://fonts.googleapis.com/css?family=Cousine" rel="stylesheet">
+        <link href="styles/main.css" rel="stylesheet">
     </head>
 
     <body>
-        <div id="main">
-            <div id="debug"></div>
+        <img src="images/logo.png" class="logo">
+        <div id="main" class="frame">
+            <div class="infobox">
+                <div class="info">
+                    Use your arrow keys to explore.<br/>
+                    <div class="arrows">← ↑ → ↓</div>
+                    (Or touch and drag if you're short of a keyboard)<br/>
+                    <button class="enter">Enter</button>
+                    <button class="pause">Pause</button>
+                </div>
+            </div>
+
+            <div class="linkbox">
+                <iframe src=""></iframe>
+                <button class="close">Resume</button>
+            </div>
         </div>
 
+        <div class="debug"></div>
+
         <!--
-        <audio loop>
-            <source src="sounds/3ww.opus" type="audio/ogg">
-            <source src="sounds/3ww.mp3" type="audio/mp3">
+        <audio loop preload>
+            <source src="sounds/3ww_intro.ogg" type="audio/ogg">
+            <source src="sounds/3ww_intro.mp3" type="audio/mp3">
+            <source src="sounds/3ww_intro.m4a" type="audio/m4a">
         </audio>
         -->
 
@@ -57,5 +50,89 @@
 
         <script src="assets/main.bundle.js"></script>
         <script> $(main); </script>
+
+        <!--
+        <script>
+            $(function() {
+                /*
+                var sound = new Howl({
+                    //src: 'sounds/3ww_intro.m4a',
+                    src: 'sounds/door_open.m4a',
+                    loop: false
+                });
+
+                sound.on('load', function() {
+                    $('button.enter').text('PLAY');
+                    console.log('LOADED');
+                });
+                */
+
+                var loop = document.querySelector('audio');
+
+                /*
+                loop.volume = 0;
+                if (loop.volume !== 0) {
+                    $('.debug').text('iOS');
+                } else {
+                    loop.volume = 1;
+                }
+                */
+
+                var ctx = new (window.AudioContext || window.webkitAudioContext);
+                var source = ctx.createMediaElementSource(loop);
+                var gain = ctx.createGain();
+                source.connect(gain);
+                gain.connect(ctx.destination);
+
+                var fade_to = 1;
+                var volume = 1;
+
+                function lerp(x, y, a) {
+                    return (1-a)*x + a*y;
+                }
+
+                function animate() {
+                    requestAnimationFrame(animate);
+
+                    if (volume !== fade_to) {
+                        var d = Math.abs(volume - fade_to);
+                        if (d < 0.01) {
+                            volume = fade_to;
+                        } else {
+                            volume = lerp(volume, fade_to, 0.10);
+                        }
+                        gain.gain.value = volume;
+                        //loop.volume = volume;
+                        console.log('volume:', volume);
+                    }
+                }
+
+                $('button.enter').on('click', function(e) {
+                    /*
+                    if (loop.paused) {
+                        console.log('play');
+                        loop.play();
+                        animate();
+                    }
+
+                    */
+                    //sound.play();
+                    //setTimeout(function() { sound.play(); }, 3000);
+                    if (loop.paused) {
+                        console.log('play');
+                        loop.play();
+                        animate();
+                    }
+
+                    fade_to = 1;
+                    //loop.play();
+                });
+
+                $('button.pause').on('click', function(e) {
+                    fade_to = 0;
+                });
+            });
+        </script>
+        -->
     </body>
 </html>
