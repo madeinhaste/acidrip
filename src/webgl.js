@@ -1,6 +1,8 @@
 import {each_line} from './utils';
 import {vec2, vec3, vec4} from 'gl-matrix';
 
+const PRECISION_FRAGMENT = 'medium';
+
 // keeps track of array flag of the vertex attributes
 var attribArrayManager = {
     enabledMask: 0,
@@ -241,6 +243,8 @@ function createShader(type, source, name) {
         console.log(lineNumber+': '+line);
     });
 
+    console.log('Error:', gl.getShaderInfoLog(shader));
+
     throw {
         type: 'COMPILE',
         shaderType: (type == gl.VERTEX_SHADER ? 'vertex' : 'fragment'),
@@ -252,8 +256,8 @@ function createShader(type, source, name) {
 }
 
 function createProgram(options) {
-    //var FRAGMENT_HEADER = 'precision mediump float;\n';
-    var FRAGMENT_HEADER = 'precision highp float;\n';
+    var FRAGMENT_HEADER = `precision ${PRECISION_FRAGMENT}p float;\n`;
+
     var program = gl.createProgram();
     gl.attachShader(program, createShader(gl.VERTEX_SHADER, options.vertexSource, options.name));
     gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, FRAGMENT_HEADER + options.fragmentSource, options.name));
@@ -261,6 +265,8 @@ function createProgram(options) {
 
     if (gl.getProgramParameter(program, gl.LINK_STATUS))
         return program;
+
+    console.log('Link Error:', gl.getProgramInfoLog(program));
 
     // link error
     throw {
