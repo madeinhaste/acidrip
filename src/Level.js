@@ -323,7 +323,6 @@ export class Level {
 
         // shader
         this.pgm = get_program('tmd');
-        console.log('TMD PROGRAM:', this.pgm);
 
         // vertex buffers
         this.gl_buffers = _.map(this.buffers, src => {
