@@ -6,6 +6,7 @@ var color = vec4.create();
 var quad = new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]);
 var buffer = null;
 var texture = null;
+var pgm = null;
 
 function init_gl() {
     if (buffer)
@@ -15,6 +16,7 @@ function init_gl() {
         filter: gl.NEAREST,
         flip: true
     });
+    pgm = get_program('packshot');
 }
 
 export class Packshot {
@@ -39,7 +41,7 @@ export class Packshot {
 
         gl.enable(gl.DEPTH_TEST);
 
-        var pgm = get_program('packshot').use();
+        pgm.use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
         pgm.uniform3fv('view_pos', env.camera.view_pos);
         pgm.uniformMatrix4fv('m_obj', this.mat);

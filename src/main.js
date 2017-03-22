@@ -8,6 +8,7 @@ import copy_to_clipboard from 'copy-to-clipboard';
 import {Howl} from 'howler';
 import {Lyric} from './lyric';
 import {Packshot} from './packshot';
+import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 
 Howler.mobileAutoEnable = false;
 Howler.usingWebAudio = true;
@@ -55,7 +56,7 @@ window.main = function() {
             pool2: get_sound('pool2', true),
             campfire: get_sound('campfire_c', true),
             screech: get_sound('screech_and_bump', false),
-            siren: get_sound('siren', false),
+            siren: get_sound('siren', true),
             plane_splash: get_sound('plane_splash', false),
             door_open: get_sound('door_open', false),
         });
@@ -112,6 +113,7 @@ window.main = function() {
 
         if (area == 5) {
             lyrics.campfire.fade();
+            sounds.campfire.stop();
             level.ghost.active = true;
         }
 
@@ -122,7 +124,13 @@ window.main = function() {
 
 
         if (area == 6) {
+            sounds.pool1.stop();
+            sounds.pool2.stop();
             lyrics.neon.fade();
+        }
+
+        if (area == 8) {
+            sounds.siren.stop();
         }
     };
 
@@ -163,6 +171,10 @@ window.main = function() {
             var s = _.sample([sounds.howl1, sounds.howl2]);
             //var s = sounds.siren;
             s.play();
+        }
+
+        if (area == 8) {
+            sounds.siren.play();
         }
     };
 
@@ -285,22 +297,6 @@ window.main = function() {
         }
     };
 
-    key('a', function() {
-        player_cam.aerial = !player_cam.aerial;
-        player_cam.aerial_pos[0] = player.pos[0];
-        player_cam.aerial_pos[2] = -player.pos[1];
-        level.fog_enabled = !player_cam.aerial;
-        level.draw_debug = player_cam.aerial;
-    });
-
-    key('o', function() {
-        player_cam.ortho = !player_cam.ortho;
-    });
-
-    key('c', function() {
-        player.collide = !player.collide;
-    });
-
 
     // aerial mode
     var mouse = {
@@ -378,19 +374,39 @@ window.main = function() {
     });
 
     var area_index = 0;
-    function bind_area_key(idx) {
-        var area_key = String.fromCharCode(48 + idx);
-        key(area_key, function() {
-            if (area_index == idx)
-                area_index = 0;
-            else
-                area_index = idx;
-            $('#debug').text('area: ' + area_index);
-        });
-    }
 
-    for (var i = 0; i <= 8; ++i) {
-        bind_area_key(i);
+    var fade_color = vec4.fromValues(0, 0, 0, 1);
+    var fade_amount = 1.0;
+    var fade_target = 0.0;
+
+    var fade_quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
+    var fade_pgm = get_program('simple');
+    var fade_mat = mat4.create();
+    mat4.identity(fade_mat);
+    mat4.translate(fade_mat, fade_mat, [-1, -1, 0]);
+    mat4.scale(fade_mat, fade_mat, [2, 2, 2]);
+
+    function draw_fade() {
+        fade_amount = lerp(fade_amount, fade_target, 0.0075);
+
+        if (fade_amount < 0.01) {
+            fade_amount = 0.0;
+            return;
+        }
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        var pgm = fade_pgm.use();
+        pgm.uniformMatrix4fv('mvp', fade_mat);
+        fade_color[3] = fade_amount;
+        pgm.uniform4fv('color', fade_color);
+
+        bind_vertex_buffer(fade_quad);
+        pgm.vertexAttribPointer('position', 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.disable(gl.BLEND);
     }
 
     // canvas drawing
@@ -441,6 +457,9 @@ window.main = function() {
         // packshots
         packshots[0].draw(this);
         packshots[1].draw(this);
+
+        // fade
+        draw_fade();
     };
 
     /*
@@ -474,21 +493,17 @@ window.main = function() {
         player_cam.aerial_pos[2] = -player.pos[1];
     }
 
-    function init_player_state() {
-        load_player_state();
-        setInterval(save_player_state, 500);
-    }
-
-    key('r', function() {
+    function reset_player_state() {
         vec3.set(player.pos, 60.5, 41.0, 0.5);
         player.dir = 1;
-    });
+    }
 
-    key('d', function() {
-        var s = localStorage.getItem('level.areas');
-        save_file_as(s, 'level.areas.txt', 'text/plain');
-    });
-    
+    function init_player_state() {
+        reset_player_state();
+        //load_player_state();
+        //setInterval(save_player_state, 500);
+    }
+
     //vec3.set(level.ghost.pos, 77.45, 65.30, 0.0);
     vec3.set(level.ghost.pos, 78.52, 66.41, 0.0);
 
@@ -518,18 +533,22 @@ window.main = function() {
         }
     }
 
+    function trigger_plane() {
+        console.log('PLANE!');
+        sounds.plane_splash.play();
+        level.plane_start = performance.now();
+    }
+
     function update_plane() {
         if (level.plane_start)
             return;
 
         var px = ~~player.pos[0];
         var py = ~~player.pos[1];
-        var dir = Math.round(player.dir) % 4;
+        var dir = Math.round(player.dir) & 3;
         //console.log(px, py, dir);
         if (px == 79 && py == 86 && dir == 3) {
-            console.log('PLANE!');
-            sounds.plane_splash.play();
-            level.plane_start = performance.now();
+            trigger_plane();
         }
     }
 
@@ -556,10 +575,6 @@ window.main = function() {
         start();
     });
 
-    key('l', function() {
-        open_link(links[0]);
-    });
-     
     function update_links() {
         links.forEach(link => {
             if (link.visited)
@@ -574,7 +589,9 @@ window.main = function() {
 
             if (link.name == '3ww') {
                 // FIXME flash
-                player.dir = 3;
+                setTimeout(function() {
+                    player.dir = 3;
+                }, 500);
             }
 
             //openTab(link.url);
@@ -688,13 +705,61 @@ window.main = function() {
         Howler.mute(value);
         return value;
     }
-    key('m', mute);
+    key('m', () => mute());
 
-    key('p', function() {
-        var tx = ~~player.pos[0];
-        var ty = ~~player.pos[1];
-        $('#debug').text(`${tx},${ty}`);
-    });
+    function init_keys() {
+        key('p', function() {
+            var tx = ~~player.pos[0];
+            var ty = ~~player.pos[1];
+            $('#debug').text(`${tx},${ty}`);
+        });
+
+        key('a', function() {
+            player_cam.aerial = !player_cam.aerial;
+            player_cam.aerial_pos[0] = player.pos[0];
+            player_cam.aerial_pos[2] = -player.pos[1];
+            level.fog_enabled = !player_cam.aerial;
+            level.draw_debug = player_cam.aerial;
+        });
+
+        key('o', function() {
+            player_cam.ortho = !player_cam.ortho;
+        });
+
+        key('c', function() {
+            player.collide = !player.collide;
+        });
+
+        function bind_area_key(idx) {
+            var area_key = String.fromCharCode(48 + idx);
+            key(area_key, function() {
+                if (area_index == idx)
+                    area_index = 0;
+                else
+                    area_index = idx;
+                $('#debug').text('area: ' + area_index);
+            });
+        }
+
+        for (var i = 0; i <= 8; ++i) {
+            bind_area_key(i);
+        }
+
+        key('r', function() {
+            reset_player_state();
+        });
+
+        key('d', function() {
+            var s = localStorage.getItem('level.areas');
+            save_file_as(s, 'level.areas.txt', 'text/plain');
+        });
+        
+        key('x', trigger_plane);
+
+        key('l', function() {
+            open_link(links[0]);
+        });
+    }
 
     return {
         start,

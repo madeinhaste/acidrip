@@ -301,7 +301,8 @@ export class Level {
         //var num = padl(this.id, 2);
         //var url = `data/cdi/stg${num}/tex${version}.msgpack`;
 
-        var url = 'data/texa.msgpack.gz';
+        //var url = 'data/texa.msgpack.gz';
+        var url = 'data/texc.msgpack.gz';
 
         return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -443,7 +444,7 @@ export class Level {
         }
     }
 
-    draw_character(ch_index, tx, ty, tz, rotate) {
+    draw_character(ch_index, tx, ty, tz, scale, rotate, animate=false) {
         // FIXME
         ty += 1;
 
@@ -468,7 +469,8 @@ export class Level {
 
         //const scale = 0.5/1024;
         //const scale = 0.75/1024;
-        const scale = 0.5/1024;
+        //const scale = 0.5/1024;
+        scale *= 0.5/1024;
 
         //const scale = 1/512;
         mat4.identity(mat);
@@ -477,7 +479,12 @@ export class Level {
         mat4.rotateY(mat, mat, -0.5 * rotate * Math.PI);
 
         take.parts.forEach(part => {
-            var frame = Math.floor((t / take.resolution) % take.nframes);
+            var frame = 0;
+            
+            if (animate) {
+                frame = Math.floor((t / take.resolution) % take.nframes);
+            }
+
             var sp = 16 * frame;
             for (var i = 0; i < 16; ++i)
                 anim_mat[i] = part.mats[sp + i];
@@ -650,7 +657,8 @@ export class Level {
         var tiles = this.tiles;
 
         //var use_frustum_tiles = this.use_frustum_tiles;
-        var use_frustum_tiles = !this.draw_tiles_debug;
+        //var use_frustum_tiles = !this.draw_tiles_debug;
+        var use_frustum_tiles = true;
 
         if (!use_frustum_tiles) {
             var sp = 0;
@@ -687,34 +695,34 @@ export class Level {
 
         // --- characters ---
 
-        this.draw_character(CHARACTERS.corpse, 59.93, 38.0, 0.0, 3);
-        this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 0);
-        this.draw_character(CHARACTERS.sailor, 77.30, 97.25, -0.015, 0);
-        this.draw_character(CHARACTERS.headless_woman, 62.90, 8.90, 0.0, 2);
+        this.draw_character(CHARACTERS.corpse, 59.93, 38.0, 0.0, 1.5, 3);
+        this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 1, 0, true);
+        this.draw_character(CHARACTERS.sailor, 77.30, 97.25, -0.015, 1, 0);
+        this.draw_character(CHARACTERS.headless_woman, 62.90, 8.90, 0.0, 1, 2);
 
         // kicker
-        this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 1.2);
-        this.draw_character(CHARACTERS.corpse, 91.54, 9.33, 0.0, -0.5)
-        this.draw_character(CHARACTERS.dumpster, 92.00, 10.00, 0.0, 0.5);
+        this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 1, 1.2, true);
+        this.draw_character(CHARACTERS.corpse, 91.54, 9.33, 0.0, 1, -0.5)
+        this.draw_character(CHARACTERS.dumpster, 92.00, 10.00, 0.0, 1, 0.5);
 
-        this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 0);
-        this.draw_character(CHARACTERS.plane, 77.30, 97.25, 0.0, 0);
-        this.draw_character(CHARACTERS.car, 60.0, 85.0, 0, 0);
+        this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 1, 0, true);
+        this.draw_character(CHARACTERS.plane, 77.30, 97.25, 0.0, 1, 0, true);
+        this.draw_character(CHARACTERS.car, 60.0, 85.0, 0, 1, 0);
         
-        this.draw_character(CHARACTERS.gunman, 93.00, 70.0, 0.0, 0);
-        this.draw_character(CHARACTERS.victim, 93.00, 66.25, 0.0, 2);
+        this.draw_character(CHARACTERS.gunman, 93.00, 70.0, 0.0, 1, 0);
+        this.draw_character(CHARACTERS.victim, 93.00, 66.25, 0.0, 1, 2);
 
         // boats
         var tx = 0.025 * this.time;
-        this.draw_character(CHARACTERS.boat, 13.50, 64.85 - tx, 0.0, 0);
+        this.draw_character(CHARACTERS.boat, 13.50, 64.85 - tx, 0.0, 1, 0, true);
 
-        this.draw_character(CHARACTERS.dumpster_body, 54.30, 28.71, 0.0, 0);
+        this.draw_character(CHARACTERS.dumpster_body, 54.30, 28.71, 0.0, 1, 0);
 
 
 
         var pos = this.ghost.pos;
         var dir = this.ghost.dir;
-        this.draw_character(CHARACTERS.ghost, pos[0], pos[1], pos[2], dir);
+        this.draw_character(CHARACTERS.ghost, pos[0], pos[1], pos[2], 1, dir, true);
     }
 
     get_tile(x, y, z) {
