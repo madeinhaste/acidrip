@@ -88,7 +88,6 @@ void main() {
         float fog_factor = (fog_end - d) / (fog_end - fog_start);
         fog_factor = clamp(fog_factor, 0.0, 1.0);
         gl_FragColor.rgb = mix(fog_color, gl_FragColor.rgb, fog_factor);
-        //gl_FragColor.r = fog_factor;
     }
 
     //gl_FragColor.rgb = vec3(0.5*N + 0.5);

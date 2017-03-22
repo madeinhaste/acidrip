@@ -277,6 +277,7 @@ export class Level {
 
     update_areas_texture() {
         gl.bindTexture(gl.TEXTURE_2D, this.areas_texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.map.w, this.map.h, gl.RGBA, gl.UNSIGNED_BYTE, this.areas);
     }
 
@@ -304,6 +305,7 @@ export class Level {
 
         return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
             data.forEach(tile => {
                 var image = tile_to_image(tile);
                 gl.texSubImage2D(

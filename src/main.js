@@ -7,6 +7,7 @@ import {PickRay} from './PickRay';
 import copy_to_clipboard from 'copy-to-clipboard';
 import {Howl} from 'howler';
 import {Lyric} from './lyric';
+import {Packshot} from './packshot';
 
 Howler.mobileAutoEnable = false;
 Howler.usingWebAudio = true;
@@ -165,6 +166,8 @@ window.main = function() {
         }
     };
 
+    // LYRICS
+
     var lyrics = {
         campfire: new Lyric('data/lyric-campfire2.msgpack'),
         neon: new Lyric('data/lyric-neon.msgpack'),
@@ -186,6 +189,28 @@ window.main = function() {
         color: [0.0, 0.4, 0.9, 0.85],
         color2: [0.8, 0.0, 0.7, 0.65],
         speed: 0.1
+    });
+
+
+    // PACKSHOTS
+
+    var packshots = [
+        new Packshot,
+        new Packshot,
+    ];
+
+    packshots[0].setup({
+        pos: [59.0, 0.0, -0.01],
+        scale: 1.0,
+        rotate: Math.PI,
+        texpos: 1
+    });
+
+    packshots[1].setup({
+        pos: [30.4, 0.0, -72.01],
+        scale: 0.6,
+        rotate: 1.0*Math.PI,
+        texpos: 0
     });
 
     var paused = false;
@@ -409,8 +434,13 @@ window.main = function() {
         level.draw(this);
         player.draw(this);
 
+        // lyrics
         lyrics.campfire.draw(this);
         lyrics.neon.draw(this);
+
+        // packshots
+        packshots[0].draw(this);
+        packshots[1].draw(this);
     };
 
     /*
