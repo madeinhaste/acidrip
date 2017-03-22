@@ -658,8 +658,17 @@ window.main = function() {
 
     load_sounds();
 
+    function mute(value) {
+        if (typeof value == 'undefined')
+            value = !Howler._muted;
+        Howler.mute(value);
+        return value;
+    }
+    key('m', mute);
+
     return {
-        start
+        start,
+        mute
     };
 }
 
