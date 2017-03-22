@@ -36,7 +36,7 @@ window.main = function() {
             name: 'relaxer',
             url: 'https://alt-j.lnk.to/RelaxerPR',
             visited: false,
-            pos: [44, 25]
+            pos: [32, 74]
         },
     ];
 
@@ -180,12 +180,12 @@ window.main = function() {
     });
 
     lyrics.neon.setup({
-        pos: [97.7, 1.8, -81.5],
-        scale: 8.0,
-        rotate: -0.5*Math.PI,
+        pos: [37.0, 1.5, -2.5],
+        scale: 4.5,
+        rotate: Math.PI,
         color: [0.0, 0.4, 0.9, 0.85],
         color2: [0.8, 0.0, 0.7, 0.65],
-        speed: 0.5
+        speed: 0.1
     });
 
     var paused = false;
@@ -260,11 +260,6 @@ window.main = function() {
         }
     };
 
-    key('p', function() {
-        player_cam.enabled = !player_cam.enabled;
-        //level.fog_enabled = player_cam.enabled;
-    });
-
     key('a', function() {
         player_cam.aerial = !player_cam.aerial;
         player_cam.aerial_pos[0] = player.pos[0];
@@ -276,7 +271,6 @@ window.main = function() {
     key('o', function() {
         player_cam.ortho = !player_cam.ortho;
     });
-
 
     key('c', function() {
         player.collide = !player.collide;
@@ -665,6 +659,12 @@ window.main = function() {
         return value;
     }
     key('m', mute);
+
+    key('p', function() {
+        var tx = ~~player.pos[0];
+        var ty = ~~player.pos[1];
+        $('#debug').text(`${tx},${ty}`);
+    });
 
     return {
         start,

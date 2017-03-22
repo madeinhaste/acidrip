@@ -647,7 +647,10 @@ export class Level {
         var map_tiles = this.map.tiles;
         var tiles = this.tiles;
 
-        if (!this.use_frustum_tiles) {
+        //var use_frustum_tiles = this.use_frustum_tiles;
+        var use_frustum_tiles = !this.draw_tiles_debug;
+
+        if (!use_frustum_tiles) {
             var sp = 0;
             for (var ty = 0; ty < map_h; ++ty) {
                 for (var tx = 0; tx < map_w; ++tx) {
