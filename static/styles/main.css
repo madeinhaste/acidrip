@@ -27,7 +27,7 @@ img.logo {
 
 @media
     (max-width: 400px) and (orientation: portrait),
-    (max-height: 400px) and (orientation: landscape)
+    (max-height: 300px) and (orientation: landscape)
 {
     body {
         font-size: 80%;
@@ -39,6 +39,27 @@ img.logo {
         left: 0;
         right: 0;
         bottom: 0;
+    }
+
+    img.logo {
+        top: 15px;
+        height: 22px;
+    }
+}
+
+@media
+    (max-width: 800px) and (orientation: portrait),
+    (max-height: 600px) and (orientation: landscape)
+{
+    body {
+        font-size: 80%;
+    }
+
+    .frame {
+        top: 50px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
     }
 
     img.logo {
@@ -120,5 +141,5 @@ button.close {
     top: 5px;
     left: 5px;
     color: red;
-    font: 30px Cousine;
+    font: 25px Cousine;
 }
