@@ -1,14 +1,11 @@
 // tiles //
 attribute vec2 coord;
 varying vec2 v_coord;
-uniform vec2 size;
-uniform mat4 m_vp;
-uniform vec4 color;
-
-uniform sampler2D s_map;
-uniform sampler2D s_lut;
 
 // tiles.vertex //
+uniform vec2 size;
+uniform mat4 m_vp;
+
 void main() {
     vec2 C = size * coord;
     vec3 P = vec3(C.x, 0.0, -C.y);
@@ -17,6 +14,10 @@ void main() {
 }
 
 // tiles.fragment //
+uniform vec4 color;
+uniform sampler2D s_map;
+uniform sampler2D s_lut;
+
 #extension GL_OES_standard_derivatives : enable
 
 float grid(vec2 co) {

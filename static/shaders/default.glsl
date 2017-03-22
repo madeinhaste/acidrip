@@ -1,14 +1,16 @@
 // grid //
 attribute vec2 position;
-uniform mat4 mvp;
-uniform vec4 color;
 
 // grid.vertex //
+uniform mat4 mvp;
+
 void main() {
     gl_Position = mvp * vec4(position.x, 0, position.y, 1);
 }
 
 // grid.fragment //
+uniform vec4 color;
+
 void main() {
     gl_FragColor = color;
 }
@@ -16,15 +18,16 @@ void main() {
 
 // simple //
 attribute vec3 position;
-uniform mat4 mvp;
-uniform vec4 color;
 
 // simple.vertex //
+uniform mat4 mvp;
+
 void main() {
     gl_Position = mvp * vec4(position, 1.0);
 }
 
 // simple.fragment //
+uniform vec4 color;
 void main() {
     gl_FragColor = color;
 }
@@ -33,12 +36,12 @@ void main() {
 
 // lyric //
 attribute vec2 coord;
-uniform mat4 m_vp;
-uniform mat4 m_obj;
-uniform vec4 color;
-uniform float time;
 
 // lyric.vertex //
+uniform mat4 m_vp;
+uniform mat4 m_obj;
+uniform float time;
+
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
@@ -58,6 +61,7 @@ void main() {
 }
 
 // lyric.fragment //
+uniform vec4 color;
 void main() {
     gl_FragColor = color;
 }

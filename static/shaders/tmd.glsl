@@ -11,19 +11,13 @@ varying vec3 v_position;
 varying vec3 v_normal;
 varying vec2 v_texcoord;
 
+// tmd.vertex //
 uniform mat4 m_vp;
 uniform mat4 m_obj;
 
 uniform vec3 view_pos;
 uniform vec3 light_pos;
-uniform sampler2D s_tix;
 
-uniform vec3 debug_color;
-uniform vec3 ambient;
-uniform vec2 fog_range;
-uniform vec3 fog_color;
-
-// tmd.vertex //
 void main() {
     vec3 P = position;
     P.y = -P.y;
@@ -47,6 +41,10 @@ void main() {
 }
 
 // tmd.fragment //
+uniform sampler2D s_tix;
+uniform vec3 ambient;
+uniform vec2 fog_range;
+uniform vec3 fog_color;
 
 /*
 #extension GL_OES_standard_derivatives : enable
@@ -80,7 +78,6 @@ void main() {
         gl_FragColor.rgb = C;
     }
 
-    //gl_FragColor.rgb += debug_color;
     gl_FragColor.a = 1.0;
 
     // fog:
