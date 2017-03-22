@@ -1,4 +1,5 @@
-import msgpack from 'msgpack-lite';
+//import msgpack from 'msgpack-lite';
+//import msgpack from 'tiny-msgpack';
 
 export const DEG_PER_RAD = 180/Math.PI;
 export const RAD_PER_DEG = Math.PI/180;
@@ -136,6 +137,16 @@ export function fetch_msgpack(url) {
         .then(ab => {
             var b = new Uint8Array(ab);
             return msgpack.decode(b);
+        });
+}
+
+export function fetch_msgpack_gz(url) {
+    return fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => {
+            var b = pako.inflate(ab);
+            var o = msgpack.decode(b);
+            return o;
         });
 }
 

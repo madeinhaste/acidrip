@@ -11,6 +11,7 @@
             body {
                 background-color: #000;
                 color: #ebebeb;
+                font: 19px Cousine;
             }
 
             .frame {
@@ -31,6 +32,29 @@
                 left: 50%;
                 transform: translate(-50%, 0);
                 height: 33px;
+                z-index: 100;
+            }
+
+            @media
+                (max-width: 400px) and (orientation: portrait),
+                (max-height: 400px) and (orientation: landscape)
+            {
+                body {
+                    font-size: 80%;
+                }
+
+                .frame {
+                    border: none;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                }
+
+                img.logo {
+                    top: 15px;
+                    height: 22px;
+                }
             }
 
             .infobox {
@@ -41,7 +65,6 @@
             }
 
             .info {
-                font: 19px Cousine;
                 text-align: center;
             }
 
@@ -84,6 +107,8 @@
                 display: none;
                 opacity: 0;
                 transition: opacity 3s linear;
+
+                z-index: 100;
             }
 
             iframe {
@@ -99,6 +124,14 @@
                 border: 1px solid white;
                 text-align: center;
             }
+
+            .debug {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                color: red;
+                font: 30px Cousine;
+            }
         </style>
     </head>
 
@@ -111,6 +144,7 @@
                     <div class="arrows">← ↑ → ↓</div>
                     (Or touch and drag if you're short of a keyboard)<br/>
                     <button class="enter">Enter</button>
+                    <button class="pause">Pause</button>
                 </div>
             </div>
 
@@ -120,14 +154,112 @@
             </div>
         </div>
 
+        <div class="debug"></div>
+
+        <!--
+        <audio loop preload>
+            <source src="sounds/3ww_intro.ogg" type="audio/ogg">
+            <source src="sounds/3ww_intro.mp3" type="audio/mp3">
+            <source src="sounds/3ww_intro.m4a" type="audio/m4a">
+        </audio>
+        -->
+
         <script src="scripts/vendor/jquery-3.1.1.min.js"></script>
         <script src="scripts/vendor/lodash.min.js"></script>
         <script src="scripts/vendor/keymaster.js"></script>
+        <script src="scripts/vendor/msgpack.min.js"></script>
+        <script src="scripts/vendor/howler.js"></script>
+        <script src="scripts/vendor/pako_inflate.min.js"></script>
+
         <script src="scripts/polyfills/fetch.js"></script>
         <script src="scripts/polyfills/promise.js"></script>
         <script src="scripts/polyfills/performance.js"></script>
-        <script src="assets/main.bundle.js"></script>
 
+        <script src="assets/main.bundle.js"></script>
         <script> $(main); </script>
+
+        <!--
+        <script>
+            $(function() {
+                /*
+                var sound = new Howl({
+                    //src: 'sounds/3ww_intro.m4a',
+                    src: 'sounds/door_open.m4a',
+                    loop: false
+                });
+
+                sound.on('load', function() {
+                    $('button.enter').text('PLAY');
+                    console.log('LOADED');
+                });
+                */
+
+                var loop = document.querySelector('audio');
+
+                /*
+                loop.volume = 0;
+                if (loop.volume !== 0) {
+                    $('.debug').text('iOS');
+                } else {
+                    loop.volume = 1;
+                }
+                */
+
+                var ctx = new (window.AudioContext || window.webkitAudioContext);
+                var source = ctx.createMediaElementSource(loop);
+                var gain = ctx.createGain();
+                source.connect(gain);
+                gain.connect(ctx.destination);
+
+                var fade_to = 1;
+                var volume = 1;
+
+                function lerp(x, y, a) {
+                    return (1-a)*x + a*y;
+                }
+
+                function animate() {
+                    requestAnimationFrame(animate);
+
+                    if (volume !== fade_to) {
+                        var d = Math.abs(volume - fade_to);
+                        if (d < 0.01) {
+                            volume = fade_to;
+                        } else {
+                            volume = lerp(volume, fade_to, 0.10);
+                        }
+                        gain.gain.value = volume;
+                        //loop.volume = volume;
+                        console.log('volume:', volume);
+                    }
+                }
+
+                $('button.enter').on('click', function(e) {
+                    /*
+                    if (loop.paused) {
+                        console.log('play');
+                        loop.play();
+                        animate();
+                    }
+
+                    */
+                    //sound.play();
+                    //setTimeout(function() { sound.play(); }, 3000);
+                    if (loop.paused) {
+                        console.log('play');
+                        loop.play();
+                        animate();
+                    }
+
+                    fade_to = 1;
+                    //loop.play();
+                });
+
+                $('button.pause').on('click', function(e) {
+                    fade_to = 0;
+                });
+            });
+        </script>
+        -->
     </body>
 </html>

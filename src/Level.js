@@ -3,7 +3,7 @@ import {vec3, mat4} from 'gl-matrix';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {RAD_PER_DEG} from './utils';
 import {test_ray_triangle} from './raycast';
-import {fetch_msgpack, base64_encode, base64_decode} from './utils';
+import {fetch_msgpack, fetch_msgpack_gz, base64_encode, base64_decode} from './utils';
 import {simplex2} from './noise';
 import {rasterize} from './rasterize';
 
@@ -290,20 +290,28 @@ export class Level {
     }
 
     load(id) {
-        var num = padl(id, 2);
-        var url = `data/cdi/stg${num}/level${num}.msgpack`;
-        return fetch_msgpack(url).then(data => {
-            this.initialize(data);
-            console.log(url);
-            return this.load_texture('a');
-        });
+        //var num = padl(id, 2);
+        //var url = `data/cdi/stg${num}/level${num}.msgpack`;
+
+        var url = 'data/level05.msgpack.gz';
+
+        // load level & textures in parallel
+        return Promise.all([
+            fetch_msgpack_gz(url).then(data => this.initialize(data)),
+            this.load_texture('a')
+        ]);
     }
 
     load_texture(version='a') {
-        var num = padl(this.id, 2);
-        var url = `data/cdi/stg${num}/tex${version}.msgpack`;
+        if (!this.texture)
+            this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
 
-        return fetch_msgpack(url).then(data => {
+        //var num = padl(this.id, 2);
+        //var url = `data/cdi/stg${num}/tex${version}.msgpack`;
+
+        var url = 'data/texa.msgpack.gz';
+
+        return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             data.forEach(tile => {
                 var image = tile_to_image(tile);
@@ -321,6 +329,7 @@ export class Level {
 
         // shader
         this.pgm = get_program('tmd');
+        console.log('TMD PROGRAM:', this.pgm);
 
         // vertex buffers
         this.gl_buffers = _.map(this.buffers, src => {
@@ -331,7 +340,6 @@ export class Level {
         });
 
         // texture
-        this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
         this.initialize_areas();
         //this.load_areas();
         this.load_areas_default();

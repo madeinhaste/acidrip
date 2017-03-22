@@ -8,13 +8,18 @@ import copy_to_clipboard from 'copy-to-clipboard';
 import {Howl} from 'howler';
 import {Lyric} from './lyric';
 
+Howler.mobileAutoEnable = false;
+Howler.usingWebAudio = true;
+
 function get_sound(path, loop) {
     var base_url = 'sounds/' + path;
     var exts = ['ogg', 'm4a', 'mp3'];
+    //var exts = ['webm', 'mp3'];
     var src = _.map(exts, function(ext) { return base_url + '.' + ext });
     return new Howl({
         src: src,
-        loop: loop
+        loop: loop,
+        //preload: false
     });
 }
 
@@ -35,20 +40,43 @@ window.main = function() {
         },
     ];
 
+    /*
     var sounds = {
-        intro: get_sound('3ww_intro', true),
-        howl1: get_sound('howl1', false),
-        howl2: get_sound('howl2', false),
-        brass1: get_sound('brass1', false),
-        brass2: get_sound('brass2', false),
-        pool1: get_sound('pool1', true),
-        pool2: get_sound('pool2', true),
-        campfire: get_sound('campfire_c', true),
-        screech: get_sound('screech_and_bump', false),
-        siren: get_sound('siren', false),
-        plane_splash: get_sound('plane_splash', false),
-        door_open: get_sound('door_open', false),
+        intro: new Howl({
+            src: [
+                'sounds/3ww_intro.webm',
+                'sounds/3ww_intro.mp3',
+            ],
+            loop: true,
+            preload: true
+        })
     };
+    */
+
+    var sounds = {
+        intro: get_sound('3ww_intro', true)
+    };
+
+    sounds.intro.on('load', function() {
+        $('.debug').text(sounds.intro.state());
+    });
+    
+    function load_sounds() {
+        Object.assign(sounds, {
+            howl1: get_sound('howl1', false),
+            howl2: get_sound('howl2', false),
+            brass1: get_sound('brass1', false),
+            brass2: get_sound('brass2', false),
+            pool1: get_sound('pool1', true),
+            pool2: get_sound('pool2', true),
+            campfire: get_sound('campfire_c', true),
+            screech: get_sound('screech_and_bump', false),
+            siren: get_sound('siren', false),
+            plane_splash: get_sound('plane_splash', false),
+            door_open: get_sound('door_open', false),
+        });
+        console.log('SOUNDS:', sounds);
+    }
 
     var canvas = new Canvas3D({
         antialias: false,
@@ -69,6 +97,14 @@ window.main = function() {
     $(canvas.el).addClass('webgl');
     $('#main').prepend(canvas.el);
 
+    var level = new Level;
+    level.load(5).then(() => {
+        player.level = level;
+        level.player = player;  // XXX
+        init_player_state();
+        console.log('OK');
+    });
+
     var player = new Player;
     vec3.set(player.pos, 60.5, 40.0, 0.5);
     //vec3.set(player.pos, 37, 26, 0.5);
@@ -81,7 +117,10 @@ window.main = function() {
         console.log('leave area', area);
 
         if (area == 0) {
+            //sounds.intro.pause();
             sounds.intro.fade(1, 0, 500);
+            console.log('LEAVE');
+            //sounds.intro.on('fade', function() { sounds.intro.pause(); });
         }
 
         if (area == 2) {
@@ -110,6 +149,7 @@ window.main = function() {
         console.log('enter area', area);
 
         if (area == 0) {
+            //sounds.intro.play();
             sounds.intro.fade(0, 1, 1000);
         }
 
@@ -145,13 +185,6 @@ window.main = function() {
         }
     };
 
-    var level = new Level;
-    level.load(5).then(() => {
-        player.level = level;
-        level.player = player;  // XXX
-        init_player_state();
-    });
-
     var lyrics = {
         campfire: new Lyric('data/lyric-campfire2.msgpack'),
         neon: new Lyric('data/lyric-neon.msgpack'),
@@ -178,9 +211,33 @@ window.main = function() {
     var paused = false;
 
     function start() {
-        sounds.intro.play();
+        //$('.debug').text(sounds.intro.state());
+        //console.log(sounds.intro.state());
+            
+        /*
+        var s = sounds.intro;
+        if (s.state() == 'loaded')
+            s.play();
+        else
+            s.once('load', () => s.play());
+            */
+        //setInterval(function() { sounds.intro.volume(1); }, 1000);
+        var s = sounds.intro;
+        if (s.state() == 'loading')
+            s.once('load', () => s.play());
+        else
+            s.play();
+
+        //sounds.intro.play();
+        //sounds.intro.play();
+        //document.querySelector('audio').play();
         animate();
     }
+
+    $('.debug').on('touchstart', function() {
+        sounds.intro.play();
+        $('.debug').text('OK: ' + sounds.intro.state());
+    });
 
     function pause() {
         paused = true;
@@ -648,7 +705,9 @@ window.main = function() {
         $('#debug').text('use_frustum_tiles: '+ level.use_frustum_tiles);
         e.preventDefault();
     });
+
+    load_sounds();
 }
 
-import {digitize_main} from './digitize-main';
-window.digitize_main = digitize_main;
+//import {digitize_main} from './digitize-main';
+//window.digitize_main = digitize_main;
