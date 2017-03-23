@@ -605,7 +605,9 @@ window.main = function() {
                 return;
 
             //link.visited = true;
-            open_link(link);
+            if (!devmode)
+                open_link(link);
+
             link.visited = true;    // stop further linking
 
             // FIXME use fade

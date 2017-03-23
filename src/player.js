@@ -55,14 +55,21 @@ export class Player {
         var z = this.pos[2];
 
         if (this.collide && this.level) {
-            var [tile, h, area] = this.level.get_tile(x, y, z);
-            if (!tile) return;
-            if (area == 1) return;  // collision
+            var [tile, h] = this.level.get_tile(x, y, z);
 
-            this.set_area(area);
+            console.log(tile);
 
-            //if (tile.collision == 0) return;
-            //if (tile.collision & 0x80) return;
+            if (!tile) {
+                // absent tile
+                return;
+            }
+
+            if (tile.area == 1) {
+                // collision
+                return;
+            }
+
+            this.set_area(tile.area);
         } else {
             var h = 0.0;
         }
@@ -74,10 +81,6 @@ export class Player {
         this.pos[0] = x;
         this.pos[1] = y;
         this.pos[2] = h + PLAYER_HEIGHT;
-        //console.log(this.pos[2]);
-
-        // XXX
-        // raycast fract(xy) onto tile
     }
 
     draw(env) {

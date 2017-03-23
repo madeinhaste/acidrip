@@ -6,6 +6,7 @@ var path = require('path');
 var _ = require('lodash');
 var msgpack = require('msgpack-lite');
 var filesize = require('file-size');
+var pako = require('pako');
 
 function load_lbd(filepath) {
     var buf = fs.readFileSync(filepath);
@@ -13,6 +14,12 @@ function load_lbd(filepath) {
     var lbd = new LBD;
     lbd.read(f);
     return lbd;
+}
+
+function load_areas(filepath) {
+    var str = fs.readFileSync(filepath, 'utf8');
+    var buf = new Buffer(str, 'base64');
+    return buf;
 }
 
 var stage_index = 5;
@@ -41,6 +48,9 @@ var map_h = level.map.h = 20 * (stage.nlbds / stage.columns);
 console.log('map:', map_w * map_h);
 
 level.map.tiles = new Uint32Array(map_w * map_h);
+
+var areas = load_areas('./static/data/level.areas.txt');
+console.log('areas:', areas.length);
 
 const VERTEX_BUFFER_SIZE = 1 << 20; // 1MB
 const VERTEX_SIZE = 24;
@@ -195,16 +205,23 @@ for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
     });
 
     // add a tile and return tile index
-    function add_tile(lbd_tile) {
+    function add_tile(lbd_tile, map_index) {
         if (!lbd_tile || !lbd_tile.visible)
             return 0;
+
+        var area;
+        if (areas && (map_index >= 0)) {
+            area = areas[map_index];
+        } else {
+            area = lbd_tile.collision ? 0 : 1;
+        }
 
         var o = {
             model: tile_models[lbd_tile.tmd_index],
             height: lbd_tile.height,
             rotate: lbd_tile.direction,
-            collision: lbd_tile.collision,
-            next: add_tile(lbd_tile.extra)
+            area: area,
+            next: add_tile(lbd_tile.extra, -1)
         };
 
         var tile_index = level.tiles.length;
@@ -220,7 +237,7 @@ for (var lbd_index = 0; lbd_index < stage.nlbds; ++lbd_index) {
 
         var map_index = map_w * ty + tx;
         console.assert(map_index < level.map.tiles.length);
-        level.map.tiles[map_index] = add_tile(lbd_tile);
+        level.map.tiles[map_index] = add_tile(lbd_tile, map_index);
     }
 
     // add the characters
@@ -235,7 +252,9 @@ _.each(buffers.buffers, (buf, idx) => {
     level.buffers.push(buf.buffer);
 });
 
-var destpath = `${stage_path}/level${padl(stage_index, 2)}.msgpack`;
+//var destpath = `${stage_path}/level${padl(stage_index, 2)}.msgpack.gz`;
+var destpath = './static/data/level05.msgpack.gz';
 var out = msgpack.encode(level);
-fs.writeFileSync(destpath, out);
+var outz = pako.deflate(out, {level: -1});
+fs.writeFileSync(destpath, outz);
 console.log('wrote:', destpath);

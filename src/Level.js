@@ -207,6 +207,7 @@ export class Level {
     }
 
     save_areas() {
+        /*
         // convert RGBA to area array
         var w = this.map.w;
         var h = this.map.h;
@@ -225,8 +226,10 @@ export class Level {
         var s = base64_encode(out);
         localStorage.setItem('level.areas', s);
         console.log('save_areas:', s.length);
+        */
     }
 
+    /*
     load_areas_default() {
         fetch('data/level.areas.txt')
             .then(r => r.text())
@@ -258,6 +261,7 @@ export class Level {
 
         this.update_areas_texture();
     }
+    */
 
     toggle_area(x, y, area) {
         var tx = Math.floor(x);
@@ -267,17 +271,23 @@ export class Level {
         if (ty < 0 || ty >= this.map.h)
             return;
         var idx = ty * this.map.w + tx;
+        var tile = this.map.tiles[idx];
+        if (tile)
+            tile.area = (area === area) ? 0 : area;
 
-        var idx2 = 4 * idx; // RGBA
-        this.areas[idx2] = (this.areas[idx2] == area) ? 0 : area;
-        this.update_areas_texture();
-        this.save_areas_db();
+        //var idx2 = 4 * idx; // RGBA
+        //this.areas[idx2] = (this.areas[idx2] == area) ? 0 : area;
+
+        //this.update_areas_texture();
+        //this.save_areas_db();
     }
 
     update_areas_texture() {
+        /*
         gl.bindTexture(gl.TEXTURE_2D, this.areas_texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.map.w, this.map.h, gl.RGBA, gl.UNSIGNED_BYTE, this.areas);
+        */
     }
 
     load(id) {
@@ -338,17 +348,17 @@ export class Level {
         console.log('level:initialize: init buffers');
 
         // texture
-        this.initialize_areas();
-        console.log('level:initialize: init areas');
-
+        //this.initialize_areas();
+        //console.log('level:initialize: init areas');
         //this.load_areas();
-        this.load_areas_default();
-        console.log('level:initialize: load areas default');
+        //this.load_areas_default();
+        //console.log('level:initialize: load areas default');
 
         this.ready = true;
         console.log('level:initialize: ready');
     }
 
+    /*
     initialize_areas() {
         console.assert(!this.areas);
         var w = this.map.w;
@@ -387,6 +397,7 @@ export class Level {
 
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 1, gl.RGBA, gl.UNSIGNED_BYTE, lut);
     }
+    */
 
     bind_buffer(buffer_index) {
         if (buffer_index === this.bound_buffer_index)
@@ -761,8 +772,10 @@ export class Level {
         var fy = y - ty;
         var h = tile_raycast(this, tile, fx, fy, z);
 
-        var area = this.areas[4 * map_index];
-        return [tile, h, area];
+        return [tile, h];
+
+        //var area = this.areas[4 * map_index];
+        //return [tile, h, area];
     }
 }
 
