@@ -668,6 +668,9 @@ export class Level {
         //var use_frustum_tiles = this.use_frustum_tiles;
         //var use_frustum_tiles = !this.draw_tiles_debug;
         var use_frustum_tiles = true;
+        if (this.draw_debug) {
+            use_frustum_tiles = false;
+        }
 
         if (!use_frustum_tiles) {
             var sp = 0;

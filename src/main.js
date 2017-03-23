@@ -235,12 +235,18 @@ window.main = function() {
     });
 
     var paused = false;
+    var devmode = false;
 
-    function start() {
+    function start(dev) {
         console.log('main:start');
         sounds.intro.play();
         console.log('main:start.animate');
         animate();
+
+        if (dev) {
+            init_keys();
+            devmode = true;
+        }
     }
 
     function pause() {
@@ -600,16 +606,16 @@ window.main = function() {
 
             //link.visited = true;
             open_link(link);
+            link.visited = true;    // stop further linking
 
             // FIXME use fade
             setTimeout(function() {
+                // respawn/re-enable linking
                 player.pos[0] = link.respawn[0];
                 player.pos[1] = link.respawn[1];
                 player.dir = link.respawn[2];
+                link.visited = false;
             }, 500);
-
-            //openTab(link.url);
-            //window.open(link.url);
         });
     }
 
@@ -777,11 +783,10 @@ window.main = function() {
 
         key('s', save_player_state);
     }
-    //init_keys();
 
     return {
         start,
-        mute
+        mute,
     };
 }
 
