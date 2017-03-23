@@ -192,11 +192,10 @@ export class Level {
         this.loop = null;
 
         // areas
-        this.areas = null;
         this.areas_texture = null;
         this.areas_lut = null;
 
-        this.save_areas_db = _.debounce(() => this.save_areas(), 1000);
+        this.save_areas_db = _.debounce(() => this.save_areas_to_local_storage(), 1000);
         this.draw_debug = false;
         this.flicker = false;
 
@@ -206,37 +205,23 @@ export class Level {
         this.use_frustum_tiles = true;
     }
 
-    save_areas() {
-        /*
-        // convert RGBA to area array
+    save_areas_to_local_storage() {
         var w = this.map.w;
         var h = this.map.h;
         var n = w * h;
         var out = new Uint8Array(n);
-        var src = this.areas;
-        var sp = 0;
-        var sp_end = src.length;
-        var dp = 0;
-        while (sp < sp_end) {
-            var a = src[sp];
-            sp += 4;
-            out[dp++] = a;
+        var tiles = this.tiles;
+        for (var i = 0; i < n; ++i) {
+            var idx = this.map.tiles[i];
+            var tile = tiles[idx];
+            out[i] = tile ? tile.area : 0;
         }
-
         var s = base64_encode(out);
         localStorage.setItem('level.areas', s);
         console.log('save_areas:', s.length);
-        */
     }
 
-    /*
-    load_areas_default() {
-        fetch('data/level.areas.txt')
-            .then(r => r.text())
-            .then(s => this.load_areas(s));
-    }
-    
-    load_areas(s) {
+    load_areas_from_local_storage(s) {
         if (!s)
             s = localStorage.getItem('level.areas');
 
@@ -246,22 +231,19 @@ export class Level {
         var src = base64_decode(s, Uint8Array);
         console.log('load_areas:', src.length);
 
-        // convert area to RGBA array
         var w = this.map.w;
         var h = this.map.h;
-        var out = this.areas;
-        var sp = 0;
-        var sp_end = src.length;
-        var dp = 0;
-        while (sp < sp_end) {
-            var a = src[sp++];
-            out[dp] = a;
-            dp += 4;
+        var n = w * h;
+        var tiles = this.tiles;
+        for (var i = 0; i < n; ++i) {
+            var idx = this.map.tiles[i];
+            var tile = tiles[idx];
+            if (tile)
+                tile.area = src[i];
         }
 
         this.update_areas_texture();
     }
-    */
 
     toggle_area(x, y, area) {
         var tx = Math.floor(x);
@@ -271,29 +253,59 @@ export class Level {
         if (ty < 0 || ty >= this.map.h)
             return;
         var idx = ty * this.map.w + tx;
-        var tile = this.map.tiles[idx];
-        if (tile)
-            tile.area = (area === area) ? 0 : area;
 
-        //var idx2 = 4 * idx; // RGBA
-        //this.areas[idx2] = (this.areas[idx2] == area) ? 0 : area;
+        var tile_index = this.map.tiles[idx];
+        var tile = this.tiles[tile_index];
 
-        //this.update_areas_texture();
-        //this.save_areas_db();
+        if (tile) {
+            tile.area = (tile.area === area) ? 0 : area;
+            this.update_areas_texture();
+            this.save_areas_db();
+        }
     }
 
     update_areas_texture() {
-        /*
+        var w = this.map.w;
+        var h = this.map.h;
+
+        if (!this.areas_texture) {
+            console.log('level.update_areas_texture: creating debug textures');
+
+            this.areas_lut = create_texture(gl.RGBA, 256, 1);
+            var lut = new Uint8Array(4 * 256);
+            _.each(AREA_COLORS, (col, idx) => {
+                var dp = 4 * idx;
+                lut[dp + 0] = col[0];
+                lut[dp + 1] = col[1];
+                lut[dp + 2] = col[2];
+                lut[dp + 3] = 255;
+            });
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 1,
+                             gl.RGBA, gl.UNSIGNED_BYTE, lut);
+
+            this.areas_texture = create_texture(gl.RGBA, w, h);
+        }
+
+        var data = new Uint8Array(4 * w * h);
+        var tiles = this.tiles;
+        var n = w * h;
+        var dp = 0;
+        for (var i = 0; i < n; ++i) {
+            var idx = this.map.tiles[i];
+            var tile = tiles[idx];
+            data[dp + 0] = tile ? tile.area : 0;
+            data[dp + 1] = 0;
+            data[dp + 2] = 0;
+            data[dp + 3] = 0;
+            dp += 4;
+        }
+
         gl.bindTexture(gl.TEXTURE_2D, this.areas_texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.map.w, this.map.h, gl.RGBA, gl.UNSIGNED_BYTE, this.areas);
-        */
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data);
     }
 
     load(id) {
-        //var num = padl(id, 2);
-        //var url = `data/cdi/stg${num}/level${num}.msgpack`;
-
         var url = 'data/lvl5.mpz';
         console.log('level:load');
 
@@ -303,7 +315,7 @@ export class Level {
                 console.log('level:load .. fetched msgpack gz:', url);
                 this.initialize(data);
             }),
-            this.load_texture('c')
+            this.load_texture('a')
         ]);
     }
 
@@ -343,57 +355,12 @@ export class Level {
         });
         console.log('level:initialize: init buffers');
 
-        // texture
-        //this.initialize_areas();
-        //console.log('level:initialize: init areas');
-        //this.load_areas();
-        //this.load_areas_default();
-        //console.log('level:initialize: load areas default');
+        // maybe load areas ???
+        //this.load_areas_from_local_storage();
 
         this.ready = true;
         console.log('level:initialize: ready');
     }
-
-    /*
-    initialize_areas() {
-        console.assert(!this.areas);
-        var w = this.map.w;
-        var h = this.map.h;
-        this.areas = new Uint8Array(4 * w * h);
-
-        var dp = 0;
-        for (var i = 0; i < this.map.tiles.length; ++i) {
-            var tile_index = this.map.tiles[i];
-            var tile = this.tiles[tile_index];
-            var area = 1;
-            if (tile && tile.collision)
-                area = 0;
-            this.areas[dp] = area;
-            //this.areas[dp] = Math.random() > 0.5 ? 255 : 0;
-            dp += 4;
-        }
-
-        this.areas_texture = create_texture(gl.RGBA, w, h);
-        console.log('upload areas:');
-        gl.texSubImage2D(
-            gl.TEXTURE_2D, 0,
-            0, 0, w, h,
-            gl.RGBA, gl.UNSIGNED_BYTE,
-            this.areas);
-
-        this.areas_lut = create_texture(gl.RGBA, 256, 1);
-        var lut = new Uint8Array(4 * 256);
-        _.each(AREA_COLORS, (col, idx) => {
-            var dp = 4 * idx;
-            lut[dp + 0] = col[0];
-            lut[dp + 1] = col[1];
-            lut[dp + 2] = col[2];
-            lut[dp + 3] = 255;
-        });
-
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 1, gl.RGBA, gl.UNSIGNED_BYTE, lut);
-    }
-    */
 
     bind_buffer(buffer_index) {
         if (buffer_index === this.bound_buffer_index)
@@ -645,20 +612,21 @@ export class Level {
     }
 
     draw_tiles_debug(env) {
-        if (!this.areas)
-            return;
+        if (!this.areas_texture) {
+            this.update_areas_texture();
+        }
 
         var pgm = get_program('tiles').use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);
         pgm.uniform2f('size', this.map.w, this.map.h);
         pgm.uniform4f('color', 1, 1, 1, 0.1);
-
-        //pgm.uniformSampler2D('s_map', this.areas_texture);
-        //pgm.uniformSampler2D('s_lut', this.areas_lut);
+        pgm.uniformSampler2D('s_map', this.areas_texture);
+        pgm.uniformSampler2D('s_lut', this.areas_lut);
 
         if (!this.quad) {
             this.quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
         }
+
         bind_vertex_buffer(this.quad);
         pgm.vertexAttribPointer('coord', 2, gl.FLOAT, false, 0, 0);
         gl.disable(gl.DEPTH_TEST);

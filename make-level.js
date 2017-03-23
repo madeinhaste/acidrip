@@ -49,7 +49,7 @@ console.log('map:', map_w * map_h);
 
 level.map.tiles = new Uint32Array(map_w * map_h);
 
-var areas = load_areas('./static/data/level.areas.txt');
+var areas = load_areas('./level.areas.txt');
 console.log('areas:', areas.length);
 
 const VERTEX_BUFFER_SIZE = 1 << 20; // 1MB

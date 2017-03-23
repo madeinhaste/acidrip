@@ -763,6 +763,7 @@ window.main = function() {
         });
 
         key('d', function() {
+            // save areas from local storage
             var s = localStorage.getItem('level.areas');
             save_file_as(s, 'level.areas.txt', 'text/plain');
         });
@@ -770,7 +771,8 @@ window.main = function() {
         key('x', trigger_plane);
 
         key('l', function() {
-            open_link(links[0]);
+            //open_link(links[0]);
+            level.load_areas_from_local_storage();
         });
 
         key('s', save_player_state);
