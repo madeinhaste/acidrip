@@ -121,7 +121,7 @@ window.main = function() {
         }
 
         if (area == 5) {
-            lyrics.campfire.fade();
+            lyrics[1].fade();
             sounds.campfire.stop();
             level.ghost.active = true;
         }
@@ -135,7 +135,7 @@ window.main = function() {
         if (area == 6) {
             sounds.pool1.stop();
             sounds.pool2.stop();
-            lyrics.neon.fade();
+            lyrics[0].fade();
         }
 
         if (area == 8) {
@@ -167,13 +167,13 @@ window.main = function() {
             //var s = _.sample([sounds.howl1, sounds.howl2]);
             var s = sounds.campfire;
             s.play();
-            lyrics.campfire.start();
+            lyrics[1].start();
         }
 
         if (area == 6) {
             var s = _.sample([sounds.pool1, sounds.pool2]);
             s.play();
-            lyrics.neon.start();
+            lyrics[0].start();
         }
 
         if (area == 4) {
@@ -187,29 +187,28 @@ window.main = function() {
         }
     };
 
-    // LYRICS
 
-    var lyrics = {
-        campfire: new Lyric('data/lyric-campfire2.msgpack'),
-        neon: new Lyric('data/lyric-neon2.msgpack'),
-    };
+    var lyrics = [
+        new Lyric('data/lyric-neon2.msgpack'),          // 0
+        new Lyric('data/lyric-campfire2.msgpack'),      // 1
+    ];
 
-    lyrics.campfire.setup({
-        pos: [77.5, 1.5, -66.001],
-        scale: 2,
-        rotate: Math.PI,
-        color: [1.0, 0.8, 0.1, 0.85],
-        color2: [1.0, 0.3, 0.0, 0.65],
-        speed: 0.02
-    });
-
-    lyrics.neon.setup({
+    lyrics[0].setup({
         pos: [37.0, 1.5, -2.5],
         scale: 4.5,
         rotate: Math.PI,
         color: [0.0, 0.4, 0.9, 0.85],
         color2: [0.8, 0.0, 0.7, 0.65],
         speed: 0.1
+    });
+
+    lyrics[1].setup({
+        pos: [77.5, 1.5, -66.001],
+        scale: 2,
+        rotate: Math.PI,
+        color: [1.0, 0.8, 0.1, 0.85],
+        color2: [1.0, 0.3, 0.0, 0.65],
+        speed: 0.02
     });
 
 
@@ -462,8 +461,7 @@ window.main = function() {
         }
 
         // packshots
-        packshots[0].draw(this);
-        packshots[1].draw(this);
+        packshots.forEach(o => o.draw(this));
 
         level.flicker = (player.area == 5);
         level.draw(this);
@@ -473,8 +471,7 @@ window.main = function() {
         }
 
         // lyrics
-        lyrics.campfire.draw(this);
-        lyrics.neon.draw(this);
+        lyrics.forEach(o => o.draw(this));
 
         //level.draw_tiles_debug(this);
 
