@@ -14,15 +14,9 @@ import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 //Howler.usingWebAudio = true;
 
 function get_sound(path, loop) {
-    var base_url = 'sounds/' + path;
     var exts = ['ogg', 'm4a', 'mp3'];
-    //var exts = ['webm', 'mp3'];
-    var src = _.map(exts, function(ext) { return base_url + '.' + ext });
-    return new Howl({
-        src: src,
-        loop: loop,
-        //preload: false
-    });
+    var srcs = _.map(exts, ext => `sounds/${ext}/${path}.${ext}`);
+    return new Howl({ src: srcs, loop: loop });
 }
 
 window.main = function() {
