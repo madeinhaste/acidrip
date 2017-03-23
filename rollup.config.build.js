@@ -2,6 +2,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
+import string from 'rollup-plugin-string';
 
 export default {
     entry: 'src/main.js',
@@ -9,6 +10,9 @@ export default {
     format: 'iife',
     
     plugins: [
+        string({
+            include: 'src/**/*.glsl'
+        }),
         nodeResolve({
             //module: true,
             jsnext: false,
@@ -27,6 +31,6 @@ export default {
             exclude: 'node_modules/**',
             presets: ['es2015-rollup']
         }),
-        //uglify()
+        uglify()
     ]
 };
