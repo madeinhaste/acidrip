@@ -45,10 +45,12 @@ float grid(vec2 co) {
 }
 
 void main() {
-    float v = texture2D(s_map, v_coord).r;
-    vec3 vcol = texture2D(s_lut, vec2(v, 0.0)).rgb;
+    gl_FragColor.rgb = vec3(0.0);
 
-    gl_FragColor.rgb += 0.5 * vcol;
+    //float v = texture2D(s_map, v_coord).r;
+    //vec3 vcol = texture2D(s_lut, vec2(v, 0.0)).rgb;
+    //gl_FragColor.rgb += 0.5 * vcol;
+
     float cc = grid(v_coord_grid);
     gl_FragColor.rgb += cc * (color.rgb * color.a);
 

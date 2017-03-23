@@ -92,7 +92,7 @@ export class Lyric {
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-        gl.lineWidth(2);
+        //gl.lineWidth(2);
 
         var pgm = get_program('lyric').use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);

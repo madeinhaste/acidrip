@@ -10,8 +10,8 @@ import {Lyric} from './lyric';
 import {Packshot} from './packshot';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 
-Howler.mobileAutoEnable = false;
-Howler.usingWebAudio = true;
+//Howler.mobileAutoEnable = true;
+//Howler.usingWebAudio = true;
 
 function get_sound(path, loop) {
     var base_url = 'sounds/' + path;
@@ -49,7 +49,7 @@ window.main = function() {
     };
 
     function load_sounds() {
-        Object.assign(sounds, {
+        _.assign(sounds, {
             howl1: get_sound('howl1', false),
             howl2: get_sound('howl2', false),
             brass1: get_sound('brass1', false),
@@ -72,10 +72,17 @@ window.main = function() {
             'shaders/tiles.glsl',
         ]
     });
-    console.assert(gl);
+
+    if (!gl) {
+        $('.info').html(
+            `Sorry, your device doesn\'t support WebGL :( \
+            <br\><br/>
+            <a style="display: inline-block; border: 1px solid white; padding: 10px; width: 200px;" href="http://altjband.com/">Home</a>`);
+        return;
+    }
 
     canvas.camera.far = 10;
-    canvas.camera.near = 0.01;
+    canvas.camera.near = 0.1;
     canvas.camera.fov = 30;
     canvas.light_pos = vec3.fromValues(100, 100, 100);
     canvas.light_pos_v = vec3.create();
@@ -230,7 +237,9 @@ window.main = function() {
     var paused = false;
 
     function start() {
+        console.log('main:start');
         sounds.intro.play();
+        console.log('main:start.animate');
         animate();
     }
 
@@ -444,21 +453,24 @@ window.main = function() {
             }
         } else {
             this.camera.ortho = 0;
-            //this.draw_grid();
         }
 
-        //this.draw_grid();
+        // packshots
+        packshots[0].draw(this);
+        packshots[1].draw(this);
+
         level.flicker = (player.area == 5);
         level.draw(this);
-        player.draw(this);
+
+        if (player_cam.aerial) {
+            player.draw(this);
+        }
 
         // lyrics
         lyrics.campfire.draw(this);
         lyrics.neon.draw(this);
 
-        // packshots
-        packshots[0].draw(this);
-        packshots[1].draw(this);
+        //level.draw_tiles_debug(this);
 
         // fade
         draw_fade();
@@ -502,7 +514,7 @@ window.main = function() {
 
     function init_player_state() {
         reset_player_state();
-        load_player_state();
+        //load_player_state();
         //setInterval(save_player_state, 500);
     }
 
@@ -765,7 +777,7 @@ window.main = function() {
 
         key('s', save_player_state);
     }
-    init_keys();
+    //init_keys();
 
     return {
         start,

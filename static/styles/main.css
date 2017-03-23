@@ -3,7 +3,7 @@
     src: url('../fonts/MaisonNeue-Mono.eot?#iefix') format('embedded-opentype'),
          url('../fonts/MaisonNeue-Mono.woff') format('woff'),
          url('../fonts/MaisonNeue-Mono.ttf') format('truetype'),
-         url('../fonts/MaisonNeue-Mono.svg#MaisonNeue-Mono') format('svg');j
+         url('../fonts/MaisonNeue-Mono.svg#MaisonNeue-Mono') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -38,7 +38,6 @@ footer {
     right: 75px;
     bottom: 0;
     height: 45px;
-    //background-color: red;
     padding-top: 30px;
 }
 
@@ -61,6 +60,9 @@ img.logo {
     top: 22px;
     left: 50%;
     transform: translate(-50%, 0);
+    -ms-transform: translate(-50%, 0);
+    -moz-transform: translate(-50%, 0);
+    -webkit-transform: translate(-50%, 0);
     height: 33px;
     z-index: 100;
 }
@@ -128,10 +130,20 @@ img.logo {
 }
 
 .infobox {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* position: absolute; top: 0; left: 0; width: 100%; height: 100%; */
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+
+    /* background-color: red; */
 }
 
 .info {

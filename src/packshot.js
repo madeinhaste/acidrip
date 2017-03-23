@@ -40,6 +40,7 @@ export class Packshot {
             return;
 
         gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
 
         pgm.use();
         pgm.uniformMatrix4fv('m_vp', env.camera.mvp);

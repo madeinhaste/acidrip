@@ -71,13 +71,14 @@ export function digitize_main() {
         });
     }
 
+    ctx.font = '250px "Merriweather Sans"';
+
     function redraw() {
         ctx.clearRect(0, 0, cw, ch);
         ctx.fillStyle = '#282828';
-        //ctx.font = '250px "Droid Sans"';
-        ctx.font = '250px "Fantasque"';
+        ctx.font = '250px "Merriweather Sans"';
 
-        var th = 350;
+        var th = 300;
         var ty = 400;
         var tx = 0;
         text.forEach(line => {

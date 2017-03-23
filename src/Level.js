@@ -71,9 +71,8 @@ const CONVERT_5_TO_8_BIT = new Uint8Array([
      197, 206, 214, 222, 230, 239, 247, 255
 ]);
 
-function tile_to_image(tile) {
-    var image = new ImageData(tile.w, tile.h);
-    var pixels = image.data;
+function tile_to_image_data(tile) {
+    var pixels = new Uint8Array(4 * tile.w * tile.h);
     var dp = 0;
     var sp = 0;
     for (var y = 0; y < tile.h; ++y) {
@@ -95,7 +94,7 @@ function tile_to_image(tile) {
             dp += 4;
         }
     }
-    return image;
+    return pixels;
 }
 
 var anim_mat = mat4.create();
@@ -286,10 +285,14 @@ export class Level {
         //var url = `data/cdi/stg${num}/level${num}.msgpack`;
 
         var url = 'data/level05.msgpack.gz';
+        console.log('level:load');
 
         // load level & textures in parallel
         return Promise.all([
-            fetch_msgpack_gz(url).then(data => this.initialize(data)),
+            fetch_msgpack_gz(url).then(data => {
+                console.log('level:load .. fetched msgpack gz:', url);
+                this.initialize(data);
+            }),
             this.load_texture('a')
         ]);
     }
@@ -308,21 +311,22 @@ export class Level {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
             data.forEach(tile => {
-                var image = tile_to_image(tile);
+                var pixels = tile_to_image_data(tile);
                 gl.texSubImage2D(
                     gl.TEXTURE_2D, 0,
                     tile.x, tile.y, tile.w, tile.h,
-                    gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(image.data));
+                    gl.RGBA, gl.UNSIGNED_BYTE, pixels);
             });
-            console.log(url);
         });
     }
 
     initialize(data) {
-        Object.assign(this, data);
+        _.assign(this, data);
+        console.log('level:initialize');
 
         // shader
         this.pgm = get_program('tmd');
+        console.log('level:initialize: got program');
 
         // vertex buffers
         this.gl_buffers = _.map(this.buffers, src => {
@@ -331,13 +335,18 @@ export class Level {
             gl.bufferData(gl.ARRAY_BUFFER, src, gl.STATIC_DRAW);
             return b;
         });
+        console.log('level:initialize: init buffers');
 
         // texture
         this.initialize_areas();
+        console.log('level:initialize: init areas');
+
         //this.load_areas();
         this.load_areas_default();
+        console.log('level:initialize: load areas default');
 
         this.ready = true;
+        console.log('level:initialize: ready');
     }
 
     initialize_areas() {
@@ -345,8 +354,10 @@ export class Level {
         var w = this.map.w;
         var h = this.map.h;
         this.areas = new Uint8Array(4 * w * h);
+
         var dp = 0;
-        this.map.tiles.forEach(tile_index => {
+        for (var i = 0; i < this.map.tiles.length; ++i) {
+            var tile_index = this.map.tiles[i];
             var tile = this.tiles[tile_index];
             var area = 1;
             if (tile && tile.collision)
@@ -354,8 +365,7 @@ export class Level {
             this.areas[dp] = area;
             //this.areas[dp] = Math.random() > 0.5 ? 255 : 0;
             dp += 4;
-        });
-        console.log(dp);
+        }
 
         this.areas_texture = create_texture(gl.RGBA, w, h);
         console.log('upload areas:');
@@ -636,8 +646,8 @@ export class Level {
         pgm.uniform2f('size', this.map.w, this.map.h);
         pgm.uniform4f('color', 1, 1, 1, 0.1);
 
-        pgm.uniformSampler2D('s_map', this.areas_texture);
-        pgm.uniformSampler2D('s_lut', this.areas_lut);
+        //pgm.uniformSampler2D('s_map', this.areas_texture);
+        //pgm.uniformSampler2D('s_lut', this.areas_lut);
 
         if (!this.quad) {
             this.quad = new_vertex_buffer(new Float32Array([ 0, 0, 1, 0, 0, 1, 1, 1 ]));
