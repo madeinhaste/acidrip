@@ -1,5 +1,5 @@
 node_modules
-static/data
 static/sounds
 dist
 tmp
+cdi

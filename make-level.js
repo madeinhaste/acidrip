@@ -23,9 +23,9 @@ function load_areas(filepath) {
 }
 
 var stage_index = 5;
-var stages = require('./static/data/stages.json');
+var stages = require('./stages.json');
 var stage = stages[stage_index];
-var stage_path = `./static/data/cdi/stg${padl(stage_index, 2)}`;
+var stage_path = `./cdi/stg${padl(stage_index, 2)}`;
 
 var level = {
     id: stage.id,
@@ -253,8 +253,8 @@ _.each(buffers.buffers, (buf, idx) => {
 });
 
 //var destpath = `${stage_path}/level${padl(stage_index, 2)}.msgpack.gz`;
-var destpath = './static/data/level05.msgpack.gz';
+var destpath = './static/data/lvl5.mpz';
 var out = msgpack.encode(level);
-var outz = pako.deflate(out, {level: -1});
+var outz = pako.deflate(out, {level: 9});
 fs.writeFileSync(destpath, outz);
 console.log('wrote:', destpath);

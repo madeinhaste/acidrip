@@ -5,6 +5,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var msgpack = require('msgpack-lite');
+var pako = require('pako');
 
 function replace_ext(fp, ext) {
     var i = fp.lastIndexOf('.');
@@ -15,7 +16,6 @@ function replace_ext(fp, ext) {
 }
 
 function convert_tix(filepath) {
-    var destpath = replace_ext(filepath, '.msgpack');
 
     var buf = fs.readFileSync(filepath);
     var f = new BinaryReader(buf.buffer);
@@ -42,15 +42,17 @@ function convert_tix(filepath) {
     // u16 clut[256]
     // u8 data[]
 
-    var out = msgpack.encode(tiles);
-    fs.writeFileSync(destpath, out);
-    console.log('wrote:', destpath);
+    return tiles;
 }
 
-for (var i = 0; i < 14; ++i) {
-    for (var c of 'abcd') {
-        var path = `./static/data/cdi/stg${padl(i, 2)}/tex${c}.tix`;
-        //console.log(path);
-        convert_tix(path);
-    }
+//for (var i = 0; i < 14; ++i) {
+var level_index = 5;
+for (var c of 'abcd') {
+    var path = `./cdi/stg${padl(level_index, 2)}/tex${c}.tix`;
+    var tiles = convert_tix(path, destpath);
+    var out = msgpack.encode(tiles);
+    var outz = pako.deflate(out, {level: 9});
+    var destpath = `./static/data/tex5${c}.mpz`;
+    fs.writeFileSync(destpath, outz);
+    console.log('wrote:', destpath);
 }

@@ -1,4 +1,4 @@
-import {Canvas3D} from './Canvas3D';
+import {Canvas3D} from './Canvas3D';        // 1
 import {vec2, vec3, vec4, mat4, quat} from 'gl-matrix';
 import {Player} from './player';
 import {padl, save_file_as, get_event_offset, lerp} from './utils';
@@ -189,31 +189,30 @@ window.main = function() {
 
 
     var lyrics = [
-        new Lyric('data/lyric-neon2.msgpack'),          // 0
-        new Lyric('data/lyric-campfire2.msgpack'),      // 1
+        // neon
+        new Lyric({
+            id: 'lyr0',
+            pos: [37.0, 1.5, -2.5],
+            scale: 4.5,
+            rotate: Math.PI,
+            color: [0.0, 0.4, 0.9, 0.85],
+            color2: [0.8, 0.0, 0.7, 0.65],
+            speed: 0.1
+        }),
+
+        // campfire
+        new Lyric({
+            id: 'lyr1',
+            pos: [77.5, 1.5, -66.001],
+            scale: 2,
+            rotate: Math.PI,
+            color: [1.0, 0.8, 0.1, 0.85],
+            color2: [1.0, 0.3, 0.0, 0.65],
+            speed: 0.02
+        })
     ];
 
-    lyrics[0].setup({
-        pos: [37.0, 1.5, -2.5],
-        scale: 4.5,
-        rotate: Math.PI,
-        color: [0.0, 0.4, 0.9, 0.85],
-        color2: [0.8, 0.0, 0.7, 0.65],
-        speed: 0.1
-    });
-
-    lyrics[1].setup({
-        pos: [77.5, 1.5, -66.001],
-        scale: 2,
-        rotate: Math.PI,
-        color: [1.0, 0.8, 0.1, 0.85],
-        color2: [1.0, 0.3, 0.0, 0.65],
-        speed: 0.02
-    });
-
-
     // PACKSHOTS
-
     var packshots = [
         new Packshot,
         new Packshot,

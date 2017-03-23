@@ -294,7 +294,7 @@ export class Level {
         //var num = padl(id, 2);
         //var url = `data/cdi/stg${num}/level${num}.msgpack`;
 
-        var url = 'data/level05.msgpack.gz';
+        var url = 'data/lvl5.mpz';
         console.log('level:load');
 
         // load level & textures in parallel
@@ -303,7 +303,7 @@ export class Level {
                 console.log('level:load .. fetched msgpack gz:', url);
                 this.initialize(data);
             }),
-            this.load_texture('a')
+            this.load_texture('c')
         ]);
     }
 
@@ -311,11 +311,7 @@ export class Level {
         if (!this.texture)
             this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
 
-        //var num = padl(this.id, 2);
-        //var url = `data/cdi/stg${num}/tex${version}.msgpack`;
-
-        //var url = 'data/texa.msgpack.gz';
-        var url = 'data/texc.msgpack.gz';
+        var url = `data/tex5${version}.mpz`;
 
         return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);

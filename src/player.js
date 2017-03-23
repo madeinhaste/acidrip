@@ -57,8 +57,6 @@ export class Player {
         if (this.collide && this.level) {
             var [tile, h] = this.level.get_tile(x, y, z);
 
-            console.log(tile);
-
             if (!tile) {
                 // absent tile
                 return;

@@ -1,11 +1,11 @@
 import {vec4, mat4} from 'gl-matrix';
-import {fetch_msgpack, clamp} from './utils';
+import {fetch_msgpack_gz, clamp} from './utils';
 import {get_program, new_element_buffer, new_vertex_buffer, bind_element_buffer, bind_vertex_buffer} from './webgl';
 
 var color = vec4.create();
 
 export class Lyric {
-    constructor(url) {
+    constructor(o) {
         this.buffers = {
             v: null,
             e: null
@@ -18,10 +18,7 @@ export class Lyric {
         this.fade_time = 0;
         this.speed = 0.02;
 
-        fetch_msgpack(url)
-            .then(strokes => {
-                this.init(strokes);
-            });
+        this.setup(o);
     }
 
     setup(o) {
@@ -35,16 +32,18 @@ export class Lyric {
         vec4.copy(this.color2, o.color2);
 
         this.speed = o.speed;
+
+        // load the vertex data
+        var url = `data/${o.id}.mpz`;
+        fetch_msgpack_gz(url).then(d => this.init(d));
     }
 
     start() {
-        console.log('start');
         this.start_time = performance.now();
         this.fade_time = 0;
     }
 
     fade() {
-        console.log('fade');
         this.fade_time = performance.now();
     }
 
