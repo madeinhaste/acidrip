@@ -23,13 +23,13 @@ export class Canvas3D {
 
         opts = opts || {};
 
-        var sources = [ 'shaders/default.glsl' ];
-        if (opts.sources) sources.push.apply(sources, opts.sources);
+        //var sources = [ 'shaders/default.glsl' ];
+        //if (opts.sources) sources.push.apply(sources, opts.sources);
 
         window.gl = setup_canvas(canvas, {
             antialias: opts.antialias || false,
             extensions: opts.extensions || [],
-            shaderSources: sources
+            shaderSources: opts.shaders
         });
         
         console.assert(gl);
@@ -50,62 +50,6 @@ export class Canvas3D {
         };
 
         this.clear_color = vec4.fromValues(0, 0, 0, 1);
-
-        // FIXME
-        this.show_grid = true;
-        this.draw_grid = (function() {
-
-            var size = 21;
-            var va = new VertexArray({ position: '2f' });
-            var v = va.struct();
-            for (var i = 0; i < size; ++i) {
-                var x = lerp(-1, 1, i/(size - 1));
-                var y = 1;
-                vec2.set(v.position,  x, -y); va.push(v);
-                vec2.set(v.position,  x,  y); va.push(v);
-                vec2.set(v.position, -y,  x); va.push(v);
-                vec2.set(v.position,  y,  x); va.push(v);
-            }
-
-            var vertex_buffer = new_vertex_buffer(va.buffer);
-            var vertex_count = va.length;
-            var program = get_program('grid');
-            var mvp = mat4.create();
-
-            function draw() {
-                if (!this.show_grid) return;
-
-                gl.disable(gl.DEPTH_TEST);
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-                var pgm = program.use();
-
-                var scale = 0.1 * this.camera.far;
-                mat4.identity(mvp);
-                mat4.scale(mvp, mvp, [scale, scale, scale]);
-                mat4.multiply(mvp, this.camera.mvp, mvp);
-                pgm.uniformMatrix4fv('mvp', mvp);
-
-                bind_vertex_buffer(vertex_buffer);
-                va.gl_attrib_pointer('position', pgm.enableVertexAttribArray('position'));
-
-                var c0 = 0.75;
-                var c1 = 0.25;
-
-                pgm.uniform4f('color', 1, 1, 1, c1);
-                gl.drawArrays(gl.LINES, 0, 4 * size);
-
-                pgm.uniform4f('color', 1, 1, 1, c0);
-                gl.drawArrays(gl.LINES, 4 * (size / 2), 2);
-                gl.drawArrays(gl.LINES, (4 * (size / 2)) - 2, 2);
-
-                gl.disable(gl.BLEND);
-            }
-
-            return draw;
-
-        })();
 
         this.mouse = {
             pos: vec2.create(),
@@ -289,7 +233,6 @@ export class Canvas3D {
         var c = this.clear_color;
         gl.clearColor(c[0], c[1], c[2], c[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        this.draw_grid();
 
         // draw the thing
         this.draw();

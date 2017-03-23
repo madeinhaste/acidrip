@@ -9,6 +9,7 @@ import {Howl} from 'howler';
 import {Lyric} from './lyric';
 import {Packshot} from './packshot';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
+import shaders_glsl from './shaders.glsl';
 
 //Howler.mobileAutoEnable = true;
 //Howler.usingWebAudio = true;
@@ -61,10 +62,7 @@ window.main = function() {
     var canvas = new Canvas3D({
         antialias: false,
         extensions: [ 'OES_standard_derivatives' ],
-        sources: [
-            'shaders/tmd.glsl',
-            'shaders/tiles.glsl',
-        ]
+        shaders: [ shaders_glsl ]
     });
 
     if (!gl) {

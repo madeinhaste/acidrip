@@ -26,6 +26,7 @@
         "howler": "^2.0.3",
         "msgpack-lite": "^0.1.26",
         "pad-left": "^2.1.0",
+        "raw-loader": "^0.5.1",
         "rollup-plugin-babel": "^2.7.1",
         "rollup-plugin-commonjs": "^8.0.2",
         "rollup-plugin-node-resolve": "^2.0.0",

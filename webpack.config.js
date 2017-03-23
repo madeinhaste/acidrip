@@ -24,7 +24,12 @@ module.exports = {
                         'es2015'
                     ]
                 }
-            }
+            },
+            {
+                test: /\.glsl$/,
+                include: path.join(__dirname, 'src'),
+                loader: 'raw-loader'
+            },
         ],
     },
     devtool: 'eval-source-map',
