@@ -255,23 +255,20 @@ window.main = function() {
 
     // PACKSHOTS
     var packshots = [
-        new Packshot,
-        new Packshot,
+        new Packshot({
+            pos: [59.0, 0.0, -0.01],
+            scale: 1.0,
+            rotate: Math.PI,
+            texpos: 1
+        }),
+
+        new Packshot({
+            pos: [59.0, 0.0, -0.01],
+            scale: 1.0,
+            rotate: Math.PI,
+            texpos: 1
+        })
     ];
-
-    packshots[0].setup({
-        pos: [59.0, 0.0, -0.01],
-        scale: 1.0,
-        rotate: Math.PI,
-        texpos: 1
-    });
-
-    packshots[1].setup({
-        pos: [30.4, 0.0, -72.01],
-        scale: 0.6,
-        rotate: 1.0*Math.PI,
-        texpos: 0
-    });
 
     var paused = false;
     var devmode = false;

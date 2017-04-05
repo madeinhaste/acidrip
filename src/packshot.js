@@ -20,10 +20,13 @@ function init_gl() {
 }
 
 export class Packshot {
-    constructor() {
+    constructor(o) {
         init_gl();
         this.mat = mat4.create();
         this.texpos = 0;
+
+        if (o)
+            this.setup(o);
     }
 
     setup(o) {
