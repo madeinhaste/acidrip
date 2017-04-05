@@ -315,7 +315,7 @@ export class Level {
                 console.log('level:load .. fetched msgpack gz:', url);
                 this.initialize(data);
             }),
-            this.load_texture('a')
+            this.load_texture('c')
         ]);
     }
 
@@ -692,7 +692,7 @@ export class Level {
         this.draw_character(CHARACTERS.corpse, 91.54, 9.33, 0.0, 1, -0.5)
         this.draw_character(CHARACTERS.dumpster, 92.00, 10.00, 0.0, 1, 0.5);
 
-        this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 1, 0, true);
+        //this.draw_character(CHARACTERS.hanged_woman, 37.80, 15.00, 0.0, 1, 0, true);
         this.draw_character(CHARACTERS.plane, 77.30, 97.25, 0.0, 1, 0, true);
         this.draw_character(CHARACTERS.car, 60.0, 85.0, 0, 1, 0);
         

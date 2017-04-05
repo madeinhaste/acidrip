@@ -2,13 +2,23 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>alt-j : relaxer</title>
+        <title>alt-J - RELAXER</title>
+
+        <meta name="robots" content="index, follow">
+        <meta name="description" content="The New Album RELAXER Out June 9th – Click For Streaming, Pre-order, Tour Dates and More">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="alt-j">
+        <meta property="og:description" content="alt-j">
+        <meta property="og:url" content="http://www.altjband.com/relaxer/">
+        <meta property="og:image" content="http://www.altjband.com/assets/images/share-img.jpg">
+
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+
         <link href="https://fonts.googleapis.com/css?family=Cousine" rel="stylesheet">
         <link href="styles/main.css" rel="stylesheet">
         <link href="styles/font-awesome.min.css" rel="stylesheet">
-
-	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
     </head>
 
     <body>
@@ -38,7 +48,6 @@
             </div>
 
             <div class="linkbox">
-                <iframe src=""></iframe>
                 <button class="close">Resume</button>
             </div>
         </div>
@@ -63,6 +72,8 @@
                     <li data-menuanchor="live" class="menu-item"><a class="transition" href="http://altjband.com/#live">Live</a></li>
                     <li class="menu-divider">.</li>
                     <li data-menuanchor="signup" class="menu-item"><a class="transition" href="http://altjband.com/#signup">Sign Up</a></li>
+                    <li class="menu-divider">.</li>
+                    <li data-menuanchor="preorder" class="menu-item"><a class="transition" href="https://alt-j.lnk.to/RelaxerWE">Pre-Order</a></li>
                 </ul>
             </div>
 
@@ -76,12 +87,15 @@
         <script src="scripts/vendor/msgpack.min.js"></script>
         <script src="scripts/vendor/howler.js"></script>
         <script src="scripts/vendor/pako_inflate.min.js"></script>
-
         <script src="scripts/polyfills/fetch.js"></script>
         <script src="scripts/polyfills/promise.js"></script>
         <script src="scripts/polyfills/performance.js"></script>
 
-        <script src="assets/main.bundle.js"></script>
+        <!--
+        <script src="vendor.bundle.js"></script>
+        -->
+        <script src="main.bundle.js"></script>
+
         <script> $(main); </script>
     </body>
 </html>

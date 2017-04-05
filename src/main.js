@@ -1,4 +1,4 @@
-import {Canvas3D} from './Canvas3D';        // 1
+import {Canvas3D} from './Canvas3D';
 import {vec2, vec3, vec4, mat4, quat} from 'gl-matrix';
 import {Player} from './player';
 import {padl, save_file_as, get_event_offset, lerp} from './utils';
@@ -20,11 +20,20 @@ function get_sound(path, loop) {
     return new Howl({ src: srcs, loop: loop });
 }
 
+function link_url(type, id) {
+    switch (type) {
+        case 'yt':
+            return 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+        case 'altj':
+            return 'https://alt-j.lnk.to/' + id;
+    }
+}
+
 window.main = function() {
     const links = [
         {
             name: '3ww',
-            url: 'https://alt-j.lnk.to/3wwPR',
+            url: link_url('altj', '3wwPR'),
             visited: false,
             pos: [59, 0.5],
             respawn: [59.6, 4.6, 3.0]
@@ -32,10 +41,43 @@ window.main = function() {
 
         {
             name: 'relaxer',
-            url: 'https://alt-j.lnk.to/RelaxerPR',
+            url: link_url('altj', 'RelaxerPR'),
             visited: false,
             pos: [32, 74],
             respawn: [34.8, 77.4, 1.3]
+        },
+
+        {
+            name: 'lsd0',
+            url: link_url('yt', 'p6vRUd9SFR8'),
+            visited: false,
+            pos: [88, 98],
+            respawn: [87.8, 94.2, 3.1]
+        },
+
+        {
+            name: 'wiki',
+            url: 'http://dreamemulator.wikia.com/wiki/LSD:_Dream_Emulator_Wiki',
+            //url: 'https://en.wikipedia.org/wiki/LSD_(video_game)',
+            visited: false,
+            pos: [44, 25],
+            respawn: [40.7, 27.2, 0.3]
+        },
+
+        {
+            name: 'hotrs',
+            url: link_url('yt', '5A-4VGfx5lU'),
+            visited: false,
+            pos: [69, 104],
+            respawn: [68.1, 97.3, 3.1],
+        },
+
+        {
+            name: 'lsd1',
+            url: link_url('yt', 'ol4OSIGGukA'),
+            visited: false,
+            pos: [37, 62],
+            respawn: [35.4, 57.6, 3.21],
         },
     ];
 
@@ -241,6 +283,7 @@ window.main = function() {
 
     function pause() {
         paused = true;
+        sounds.intro.fade(1, 0, 500);
     }
 
     function clear() {
@@ -251,6 +294,8 @@ window.main = function() {
     function resume() {
         if (paused) {
             paused = false;
+            if (player.area == 0)
+                sounds.intro.fade(0, 1, 500);
             animate();
         }
     }
@@ -561,20 +606,28 @@ window.main = function() {
     }
 
     function open_link(link) {
-        $('.linkbox iframe').attr('src', link.url);
-        $('.linkbox').css({ display: 'block' });
+        // create iframe
+        var $iframe = $('<iframe>').attr({
+            src: link.url,
+            frameborder: 0,
+            allowfullscreen: 1
+        });
+        $('.linkbox').prepend($iframe);
+        $iframe.on('load', function(e) {
+            // show on load
+            $('.linkbox').css({ display: 'block', opacity: 1 });
+        });
 
         pause();
         requestAnimationFrame(clear);
         sounds.door_open.play();
     }
 
-    $('iframe').on('load', function() {
-        $('.linkbox').css({ display: 'block', opacity: 1 });
-    });
-
     $('button.close').on('click', function() {
         resume();
+
+        // remove iframe and hide linkbox
+        $('.linkbox iframe').remove();
         $('.linkbox').css({ display: 'none', opacity: 0 });
     });
 

@@ -12,6 +12,7 @@ body {
     background-color: #000;
     color: #ebebeb;
     font: 16px mn-mono;
+    -webkit-font-smoothing: antialiased;
     overflow: hidden;
 }
 
@@ -159,7 +160,7 @@ img.logo {
 }
 
 button {
-    background-color: transparent;
+    background-color: rgba(0,0,0, 0.5);
     border: 1px solid white;
     font: 16px mn-mono;
     width: 303px;
