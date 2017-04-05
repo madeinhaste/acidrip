@@ -62,8 +62,7 @@ window.main = function() {
 
         {
             name: 'wiki',
-            url: 'http://dreamemulator.wikia.com/wiki/LSD:_Dream_Emulator_Wiki',
-            //url: 'https://en.wikipedia.org/wiki/LSD_(video_game)',
+            url: 'photos.html',
             visited: false,
             pos: [44, 25],
             respawn: [40.7, 27.2, 0.3]
@@ -273,7 +272,7 @@ window.main = function() {
 
     function start(dev) {
         console.log('main:start');
-        //sounds.intro.play();
+        sounds.intro.play();
         console.log('main:start.animate');
         animate();
 
@@ -617,10 +616,12 @@ window.main = function() {
             frameborder: 0,
             allowfullscreen: 1
         });
-        $('.linkbox').prepend($iframe);
+        //$('.linkbox').prepend($iframe);
+        $('.linkbox').html($iframe);
         $iframe.on('load', function(e) {
             // show on load
             $('.linkbox').css({ display: 'block', opacity: 1 });
+            $('.close').show();
         });
 
         pause();
@@ -634,6 +635,7 @@ window.main = function() {
         // remove iframe and hide linkbox
         $('.linkbox iframe').remove();
         $('.linkbox').css({ display: 'none', opacity: 0 });
+        $('.close').hide();
     });
 
     $('button.enter').on('click', function() {

@@ -15,6 +15,10 @@
     -webkit-user-select: none;
 }
 
+::-webkit-scrollbar { 
+    display: none; 
+}
+
 body {
     background-color: #000;
     color: #ebebeb;
@@ -109,11 +113,6 @@ img.logo {
     .social-links {
         display: none;
     }
-
-    .navpad {
-        left: 10px !important;
-        bottom: 10px !important;
-    }
 }
 
 @media
@@ -139,11 +138,6 @@ img.logo {
 
     footer {
         display: none;
-    }
-
-    .navpad {
-        left: 5px !important;
-        bottom: 5px !important;
     }
 }
 
@@ -244,13 +238,6 @@ canvas.webgl {
     -webkit-user-select: none;
 }
 
-.navpad {
-    position: absolute;
-    left: 30px;
-    bottom: 30px;
-    z-order: 100;
-}
-
 .linkbox {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     overflow-y: scroll;
@@ -275,6 +262,7 @@ button.close {
     width: 100px;
     border: 1px solid white;
     text-align: center;
+    z-index: 100;
 }
 
 .debug {
