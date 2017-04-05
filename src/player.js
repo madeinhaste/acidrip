@@ -53,8 +53,12 @@ export class Player {
         var x = this.pos[0] + dist * Math.cos(theta);
         var y = this.pos[1] + dist * Math.sin(theta);
 
-        const Z_OFFSET = 10;    // to avoid going under walkway
-        var z = this.pos[2] + Z_OFFSET;
+        var z_offset = 0;    // to avoid going under walkway
+        if (28 <= x && x <= 32) {
+            z_offset = 1;
+        }
+
+        var z = this.pos[2] + z_offset;
 
         if (this.collide && this.level) {
             var [tile, h] = this.level.get_tile(x, y, z);
