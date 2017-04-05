@@ -23,6 +23,7 @@ attribute vec2 coord;
 uniform mat4 m_vp;
 uniform mat4 m_obj;
 uniform float time;
+uniform float distort_scale;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -31,8 +32,8 @@ float rand(vec2 co){
 vec2 distort(vec2 co, float time) {
     vec2 o;
     float scale = 0.015;
-    o.x = co.x + scale * (rand(vec2(time + co.x, co.y)) - 0.5);
-    o.y = co.y + scale * (rand(vec2(time + co.x + 4.2323, co.y + 83.2392)) - 0.5);
+    o.x = co.x + distort_scale * (rand(vec2(time + co.x, co.y)) - 0.5);
+    o.y = co.y + distort_scale * (rand(vec2(time + co.x + 4.2323, co.y + 83.2392)) - 0.5);
     return o;
 }
 

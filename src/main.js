@@ -9,7 +9,6 @@ import {Howl} from 'howler';
 import {Lyric} from './lyric';
 import {Placard} from './placard';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
-//import {create_navpad} from './navpad';
 import shaders_glsl from './shaders.glsl';
 
 //Howler.mobileAutoEnable = true;
@@ -96,7 +95,7 @@ window.main = function() {
             brass1: get_sound('brass1', false),
             brass2: get_sound('brass2', false),
             pool1: get_sound('pool1', true),
-            pool2: get_sound('pool2', true),
+            //pool2: get_sound('pool2', true),
             campfire: get_sound('campfire_c', true),
             screech: get_sound('screech_and_bump', false),
             siren: get_sound('siren', true),
@@ -167,12 +166,13 @@ window.main = function() {
         if (area == 3) {
             // kicker
             sounds.brass2.stop();
+            lyrics[2].fade();
         }
 
 
         if (area == 6) {
             sounds.pool1.stop();
-            sounds.pool2.stop();
+            //sounds.pool2.stop();
             lyrics[0].fade();
         }
 
@@ -192,6 +192,7 @@ window.main = function() {
         if (area == 3) {
             // kicker
             sounds.brass2.play();
+            lyrics[2].start();
         }
 
         if (area == 2) {
@@ -209,7 +210,8 @@ window.main = function() {
         }
 
         if (area == 6) {
-            var s = _.sample([sounds.pool1, sounds.pool2]);
+            //var s = _.sample([sounds.pool1, sounds.pool2]);
+            var s = sounds.pool1;
             s.play();
             lyrics[0].start();
         }
@@ -227,15 +229,15 @@ window.main = function() {
 
 
     var lyrics = [
-        // neon
+        // pool
         new Lyric({
-            id: 'lyr0',
+            id: 'lyr2',
             pos: [37.0, 1.5, -2.5],
             scale: 4.5,
             rotate: Math.PI,
             color: [0.0, 0.4, 0.9, 0.85],
             color2: [0.8, 0.0, 0.7, 0.65],
-            speed: 0.1
+            speed: 0.067
         }),
 
         // campfire
@@ -247,6 +249,19 @@ window.main = function() {
             color: [1.0, 0.8, 0.1, 0.85],
             color2: [1.0, 0.3, 0.0, 0.65],
             speed: 0.02
+        }),
+
+        // brass
+        new Lyric({
+            id: 'lyr4',
+            pos: [91.005, 0.5, -12.5],
+            scale: 3,
+            rotate: 0.5*Math.PI,
+            color: [0.8, 0.1, 0.0, 0.55],
+            color2: [1.0, 0.3, 0.0, 0.65],
+            speed: 0.20,
+            distort: 0.0015,
+            delay: 5.0
         })
     ];
 
@@ -260,10 +275,10 @@ window.main = function() {
         }),
 
         new Placard({
-            pos: [59.0, 0.0, -0.01],
-            scale: 1.0,
-            rotate: Math.PI,
-            texpos: 1
+            pos: [30.4, 0.0, -72.01],
+            scale: 0.6,
+            rotate: 1.0*Math.PI,
+            texpos: 0
         })
     ];
 

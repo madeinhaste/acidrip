@@ -17,6 +17,8 @@ export class Lyric {
         this.color2 = vec4.create();
         this.fade_time = 0;
         this.speed = 0.02;
+        this.distort = 0.015;
+        this.delay = 0.0;
 
         this.setup(o);
     }
@@ -33,13 +35,19 @@ export class Lyric {
 
         this.speed = o.speed;
 
+        if ('distort' in o)
+            this.distort = o.distort;
+
+        if ('delay' in o)
+            this.delay = o.delay;
+
         // load the vertex data
         var url = `data/${o.id}.mpz`;
         fetch_msgpack_gz(url).then(d => this.init(d));
     }
 
     start() {
-        this.start_time = performance.now();
+        this.start_time = performance.now() + 1000*this.delay;
         this.fade_time = 0;
     }
 
@@ -89,6 +97,7 @@ export class Lyric {
         var noise_time = 1.0 * now;
 
         gl.enable(gl.DEPTH_TEST);
+        //gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
         //gl.lineWidth(2);
@@ -99,6 +108,7 @@ export class Lyric {
 
         pgm.uniform4fv('color', color);
         pgm.uniform1f('time', noise_time);
+        pgm.uniform1f('distort_scale', this.distort);
 
         bind_vertex_buffer(this.buffers.v);
         pgm.vertexAttribPointer('coord', 2, gl.FLOAT, false, 0, 0);

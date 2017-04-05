@@ -5,8 +5,14 @@ import {save_file_as} from './utils';
 const text = [
     //"Love is just a button we pressed",
     //"last night by the camp fire."
-    "Neon, a blue neon lamp",
-    "in a midnight country field."
+
+    //"Neon, a blue neon lamp",
+    //"in a midnight country field."
+
+    //"Girls from the pool say 'Hi'"
+
+    "Pool summer summer pool summer vibes killed",
+    "In cold blood",
 ];
 
 class Stroke {
@@ -76,7 +82,7 @@ export function digitize_main() {
     function redraw() {
         ctx.clearRect(0, 0, cw, ch);
         ctx.fillStyle = '#282828';
-        ctx.font = '250px "Merriweather Sans"';
+        ctx.font = '160px "Merriweather Sans"';
 
         var th = 300;
         var ty = 400;
