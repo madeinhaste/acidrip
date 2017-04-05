@@ -7,7 +7,7 @@ import {PickRay} from './PickRay';
 import copy_to_clipboard from 'copy-to-clipboard';
 import {Howl} from 'howler';
 import {Lyric} from './lyric';
-import {Packshot} from './packshot';
+import {Placard} from './placard';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
 import {create_navpad} from './navpad';
 import shaders_glsl from './shaders.glsl';
@@ -253,16 +253,16 @@ window.main = function() {
         })
     ];
 
-    // PACKSHOTS
-    var packshots = [
-        new Packshot({
+    // PLACARDS
+    var placards = [
+        new Placard({
             pos: [59.0, 0.0, -0.01],
             scale: 1.0,
             rotate: Math.PI,
             texpos: 1
         }),
 
-        new Packshot({
+        new Placard({
             pos: [59.0, 0.0, -0.01],
             scale: 1.0,
             rotate: Math.PI,
@@ -505,8 +505,8 @@ window.main = function() {
             this.camera.ortho = 0;
         }
 
-        // packshots
-        packshots.forEach(o => o.draw(this));
+        // placards
+        placards.forEach(o => o.draw(this));
 
         level.flicker = (player.area == 5);
         level.draw(this);

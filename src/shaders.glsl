@@ -50,12 +50,12 @@ void main() {
 
 
 
-// packshot //
+// placard //
 attribute vec2 coord;
 varying vec2 v_texcoord;
 varying vec3 v_view;
 
-// packshot.vertex //
+// placard.vertex //
 uniform mat4 m_vp;
 uniform mat4 m_obj;
 uniform vec3 view_pos;
@@ -69,7 +69,7 @@ void main() {
     v_texcoord = vec2(0.5*(coord.x + texpos), coord.y);
 }
 
-// packshot.fragment //
+// placard.fragment //
 uniform sampler2D s_image;
 uniform vec2 fog_range;
 uniform vec3 fog_color;

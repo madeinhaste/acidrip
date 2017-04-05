@@ -16,10 +16,10 @@ function init_gl() {
         filter: gl.NEAREST,
         flip: true
     });
-    pgm = get_program('packshot');
+    pgm = get_program('placard');
 }
 
-export class Packshot {
+export class Placard {
     constructor(o) {
         init_gl();
         this.mat = mat4.create();
