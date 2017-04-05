@@ -1,29 +1,38 @@
 <!doctype html>
-<html>
-<head>
-
 <style>
-    body {
+    html, body {
         background-color: black;
+        /*
+        background-size: contain;
+        background-position: center center;
+        background-repeat: no-repeat;
+        */
+        width: 100%;
+        height: 100%;
+        padding: 0;
         margin: 0;
-        overflow: visible;
     }
 
-    .photo {
-        display: block;
+    img {
+        position: absolute;
         width: 100%;
-        margin-bottom: 1px;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 3s linear;
     }
 </style>
 
-</head>
 <body>
-    <div class="photos">
-        <img class="photo" src="photos/0206.jpg">
-        <img class="photo" src="photos/2527.jpg">
-        <img class="photo" src="photos/0218.jpg">
-        <img class="photo" src="photos/0213.jpg">
-        <img class="photo" src="photos/0305.jpg">
-    </div>
-</body>
-</html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var id = location.hash.substr(1);
+        var url = 'photos/' + id + '.jpg';
+        var img = new Image;
+        img.src = url;
+        document.body.appendChild(img);
+        setTimeout(function() { img.style.opacity = 1; }, 100);
+    });
+</script>

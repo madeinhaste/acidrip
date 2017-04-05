@@ -30,6 +30,8 @@ function link_url(type, id) {
             return 'https://www.youtube.com/embed/' + id + '?autoplay=1';
         case 'altj':
             return 'https://alt-j.lnk.to/' + id;
+        case 'pic':
+            return 'photos.html#' + id
     }
 }
 
@@ -60,11 +62,43 @@ window.main = function() {
         },
 
         {
-            name: 'wiki',
-            url: 'photos.html',
+            name: 'hopscotch',
+            url: link_url('pic', '0213'),
             visited: false,
             pos: [44, 25],
             respawn: [40.7, 27.2, 0.3]
+        },
+
+        {
+            name: 'headless',
+            url: link_url('pic', '0206'),
+            visited: false,
+            pos: [63, 9],
+            respawn: [62.1, 12.4, 0.7],
+        },
+
+        {
+            name: 'gunman',
+            url: link_url('pic', '0218'),
+            visited: false,
+            pos: [93, 70],
+            respawn: [92.3, 73.3, 0.8],
+        },
+
+        {
+            name: 'eye',
+            url: link_url('pic', '0305'),
+            visited: false,
+            pos: [37, 70],
+            respawn: [38.5, 67.4, 2.8],
+        },
+
+        {
+            name: 'sailor',
+            url: link_url('pic', '2527'),
+            visited: false,
+            pos: [77, 97],
+            respawn: [80.0, 95.1, 2.5],
         },
 
         {
