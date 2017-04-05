@@ -9,13 +9,11 @@ import {Howl} from 'howler';
 import {Lyric} from './lyric';
 import {Placard} from './placard';
 import {new_vertex_buffer, bind_vertex_buffer, get_program} from './webgl';
-import {create_navpad} from './navpad';
+//import {create_navpad} from './navpad';
 import shaders_glsl from './shaders.glsl';
 
 //Howler.mobileAutoEnable = true;
 //Howler.usingWebAudio = true;
-
-const USE_NAVPAD = true;
 
 function get_sound(path, loop) {
     var exts = ['ogg', 'm4a', 'mp3'];
@@ -275,7 +273,7 @@ window.main = function() {
 
     function start(dev) {
         console.log('main:start');
-        sounds.intro.play();
+        //sounds.intro.play();
         console.log('main:start.animate');
         animate();
 
@@ -284,10 +282,8 @@ window.main = function() {
             devmode = true;
         }
 
-        if (USE_NAVPAD)
+        if (has_touch())
             init_navpad();
-        else
-            init_touch_events(canvas.el);
     }
 
     function pause() {
@@ -671,155 +667,55 @@ window.main = function() {
         });
     }
 
-    function init_touch_events(el) {
-        function get_event_pos(out, e) {
-            var rect = e.target.getBoundingClientRect();
-            if (typeof e.pageX == 'undefined') {
-                e = (e.targetTouches[0] ||
-                     e.changedTouches[0]);
-            }
+    function do_navpad_dir(dir, state) {
+        const rotate_speed = 0.01;
+        const advance_speed = 1.0;
 
-            if (!e) {
-                out[0] = 0;
-                out[1] = 0;
-                return;
-            }
 
-            out[0] = e.pageX - rect.left;
-            out[1] = e.pageY - rect.top;
+        switch (dir) {
+            case 'u':
+                player.touch.advance = state ? advance_speed : 0;
+                break;
+
+            case 'r':
+                player.touch.rotate = state ? rotate_speed : 0;
+                break;
+
+            case 'd':
+                player.touch.advance = state ? -advance_speed : 0;
+                break;
+
+            case 'l':
+                player.touch.rotate = state ? -rotate_speed : 0;
+                break;
         }
 
-        var mouse = {
-            start: vec2.create(),
-            first: vec2.create(),
-            last: vec2.create(),
-            curr: vec2.create(),
-            delta: vec2.create(),
-            button: -1,
-            touches: 0,
-
-            down: function(e) {
-                get_event_pos(this.start, e);
-                vec2.copy(this.curr, this.start);
-                vec2.copy(this.last, this.curr);
-                vec2.copy(this.first, this.curr);
-                vec2.sub(this.delta, this.curr, this.last);
-
-                if (e.button === undefined) {
-                    // touches
-                    var n = e.targetTouches.length;
-                    this.button = { 1: 0, 2: 2, 3: 1 }[n];
-                    this.touches = n;
-                } else {
-                    this.button = e.button;
-                    this.touches = 0;
-                }
-            },
-
-            move: function(e) {
-                vec2.copy(this.last, this.curr);
-                get_event_pos(this.curr, e);
-                vec2.sub(this.delta, this.curr, this.last);
-            },
-
-            up: function(e) {
-                vec2.copy(this.last, this.curr);
-                get_event_pos(this.curr, e);
-                vec2.sub(this.delta, this.curr, this.last);
-                this.button = -1;
-            },
-            
-            drag: false
-        };
-
-        function do_move() {
-            var cx = 2*(mouse.curr[0] / el.clientWidth) - 1;
-            var cy = 2*(mouse.curr[1] / el.clientHeight) - 1;
-
-            const DIR_UP = 0;
-            const DIR_RIGHT = 1;
-            const DIR_DOWN = 2;
-            const DIR_LEFT = 3;
-
-            var dir;
-            if (Math.abs(cy) < 0.25) {
-                dir = cx < 0 ? DIR_LEFT : DIR_RIGHT;
-            } else {
-                dir = cy < 0 ? DIR_UP : DIR_DOWN;
-            }
-
-            var rotate_speed = 0.01;
-            var advance_speed = 1.0;
-
-            switch (dir) {
-                case DIR_UP:
-                    player.touch.rotate = 0;
-                    player.touch.advance = advance_speed;
-                    break;
-                case DIR_RIGHT:
-                    player.touch.advance = 0;
-                    player.touch.rotate = rotate_speed;
-                    break;
-                case DIR_DOWN:
-                    player.touch.rotate = 0;
-                    player.touch.advance = -advance_speed;
-                    break;
-                case DIR_LEFT:
-                    player.touch.advance = 0;
-                    player.touch.rotate = -rotate_speed;
-                    break;
-            }
-            player.touch.rotating = true;
-        }
-
-        el.addEventListener('touchstart', function(e) {
-            mouse.down(e);
-            mouse.drag = true;
-            e.preventDefault();
-
-            if (USE_NAVPAD)
-                do_move();
-        });
-
-        el.addEventListener('touchmove', function(e) {
-            if (!mouse.drag)
-                return;
-
-            mouse.move(e);
-
-            if (USE_NAVPAD) {
-                do_move();
-            } else {
-                var dx = mouse.curr[0] - mouse.first[0];
-                var dy = mouse.curr[1] - mouse.first[1];
-                const rotate_speed = 0.0001;
-                player.touch.rotate = rotate_speed * dx;
-                player.touch.rotating = true;
-                player.touch.advance = -0.001 * dy;
-            }
-        });
-
-        el.addEventListener('touchend', function(e) {
-            if (!mouse.drag)
-                return;
-
-            mouse.drag = false;
-            mouse.up(e);
-            player.touch.rotating = false;
-        });
+        player.touch.rotating = state ? true : false;
+        console.log('do_navpad_dir', dir, state, player.touch.advance);
     }
-    //init_touch_events();
 
     function init_navpad() {
-        if (!('ontouchstart' in window))
-            return;
+        $('.arrow-controls').show();
 
-        var navpad = create_navpad(200);
-        $(navpad).addClass('navpad');
-        $('#main').append(navpad);
-        init_touch_events(navpad);
+        $('.arrow-controls-dir').on('mousedown touchstart', function(e) {
+            e.preventDefault();
+            var dir = this.dataset.dir;
+            do_navpad_dir(dir, 1);
+            $(this).addClass('arrow-controls-dir-active');
+        });
+
+        $('.arrow-controls-dir').on('mouseup touchend', function(e) {
+            e.preventDefault();
+            var dir = this.dataset.dir;
+            do_navpad_dir(dir, 0);
+            $(this).removeClass('arrow-controls-dir-active');
+        });
+
+        canvas.el.addEventListener('touchstart', function(e) {
+            // prevent select
+            e.preventDefault();
+        });
     }
-    //init_navpad();
 
     load_sounds();
 

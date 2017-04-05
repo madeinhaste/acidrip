@@ -8,6 +8,13 @@
     font-style: normal;
 }
 
+.no-select {
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
 body {
     background-color: #000;
     color: #ebebeb;
@@ -169,6 +176,41 @@ img.logo {
     margin: 8px 0;
 }
 
+.arrow-controls {
+    display: none;
+    font-family: sans-serif;
+    font-size: 50px;
+}
+
+.arrow-controls-l {
+    position: absolute;
+    bottom: 20px;
+    left: 10px;
+}
+
+.arrow-controls-r {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+}
+
+.arrow-controls-dir {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    color: rgba(255,255,255, 0.2);
+
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.arrow-controls-dir-active {
+    color: #fff;
+}
+
 button {
     background-color: rgba(0,0,0, 0.5);
     border: 1px solid white;
@@ -195,6 +237,11 @@ canvas.webgl {
     opacity: 1;
     transition: opacity 7s linear;
     */
+
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
 }
 
 .navpad {

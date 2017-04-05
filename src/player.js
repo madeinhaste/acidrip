@@ -184,10 +184,14 @@ export class Player {
 
         // touch stuff
         this.rotate(this.touch.rotate);
+
+        /*
         if (!this.touch.rotating) {
             this.touch.rotate *= 0.2;
             this.touch.advance *= 0.2;
         }
+
+        */
 
         if (Math.abs(this.touch.advance) > 0.1) {
             var a = clamp(this.touch.advance, -advance_speed, advance_speed);
