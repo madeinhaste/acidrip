@@ -33,6 +33,7 @@
         "rollup-plugin-string": "^2.0.2",
         "rollup-plugin-uglify": "^1.0.1",
         "tiny-msgpack": "^1.0.2",
+        "uglify-js": "^2.8.15",
         "yargs": "^7.0.2"
     }
 }

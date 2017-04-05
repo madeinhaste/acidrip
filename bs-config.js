@@ -1,11 +1,7 @@
 module.exports = {
-    files: 'static/**/*',
     server: {
-        baseDir: 'static',
+        baseDir: 'dist',
         directory: true,
-        routes: {
-            '/assets': 'dist'
-        },
     },
     port: 8000
 };

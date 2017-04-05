@@ -4,17 +4,14 @@ module.exports = {
     context: __dirname + '/src',
     entry: {
         main: './main.js',
-        //mom_main: './mom-main.js',
     },
     output: {
         path: __dirname + '/dist',
         filename: '[name].bundle.js',
-        publicPath: '/assets/',
+        publicPath: '/',
     },
     module: {
         rules:[
-            //{ test: /\.css$/, use: ['style-loader', 'css-loader'] },
-            //{ test: /\.(sass|scss)$/, use: ['style-loader', 'css-loader', 'sass-loader'] },
             {
                 test: /\.js$/,
                 include: path.join(__dirname, 'src'),
