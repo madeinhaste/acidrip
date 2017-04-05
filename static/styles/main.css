@@ -102,6 +102,11 @@ img.logo {
     .social-links {
         display: none;
     }
+
+    .navpad {
+        left: 10px !important;
+        bottom: 10px !important;
+    }
 }
 
 @media
@@ -127,6 +132,11 @@ img.logo {
 
     footer {
         display: none;
+    }
+
+    .navpad {
+        left: 5px !important;
+        bottom: 5px !important;
     }
 }
 
@@ -185,6 +195,13 @@ canvas.webgl {
     opacity: 1;
     transition: opacity 7s linear;
     */
+}
+
+.navpad {
+    position: absolute;
+    left: 30px;
+    bottom: 30px;
+    z-order: 100;
 }
 
 .linkbox {
