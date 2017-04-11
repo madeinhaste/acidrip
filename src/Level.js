@@ -307,12 +307,12 @@ export class Level {
 
     load(id) {
         var url = 'data/lvl5.mpz';
-        console.log('level:load');
+        //console.log('level:load');
 
         // load level & textures in parallel
         return Promise.all([
             fetch_msgpack_gz(url).then(data => {
-                console.log('level:load .. fetched msgpack gz:', url);
+                //console.log('level:load .. fetched msgpack gz:', url);
                 this.initialize(data);
             }),
             this.load_texture('c')
@@ -340,11 +340,11 @@ export class Level {
 
     initialize(data) {
         _.assign(this, data);
-        console.log('level:initialize');
+        //console.log('level:initialize');
 
         // shader
         this.pgm = get_program('tmd');
-        console.log('level:initialize: got program');
+        //console.log('level:initialize: got program');
 
         // vertex buffers
         this.gl_buffers = _.map(this.buffers, src => {
@@ -353,13 +353,13 @@ export class Level {
             gl.bufferData(gl.ARRAY_BUFFER, src, gl.STATIC_DRAW);
             return b;
         });
-        console.log('level:initialize: init buffers');
+        //console.log('level:initialize: init buffers');
 
         // maybe load areas ???
         //this.load_areas_from_local_storage();
 
         this.ready = true;
-        console.log('level:initialize: ready');
+        //console.log('level:initialize: ready');
     }
 
     bind_buffer(buffer_index) {
@@ -687,6 +687,9 @@ export class Level {
         this.draw_character(CHARACTERS.hopskotch_girl, 44.0, 25.0, 0.05, 1, 0, true);
         this.draw_character(CHARACTERS.sailor, 77.30, 97.25, -0.015, 1, 0);
         this.draw_character(CHARACTERS.headless_woman, 62.90, 8.90, 0.0, 1, 2);
+
+        // woman2
+        //this.draw_character(CHARACTERS.headless_woman, 85.3, 65.2, 0.0, 1.0, 0.2, false);
 
         // kicker
         this.draw_character(CHARACTERS.kicker, 91.10, 13.39, 0.0, 1, 1.2, true);

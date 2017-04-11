@@ -32,26 +32,25 @@ function link_url(type, id) {
             return 'https://alt-j.lnk.to/' + id;
         case 'pic':
             return 'photos.html#' + id
+        case 'gif':
+            return 'gifs.html#Untitled-' + id
     }
 }
 
 window.main = function() {
     const links = [
+        // PROMOS
+
         {
-            name: '3ww',
-            url: link_url('altj', '3wwPR'),
+            name: 'relaxer',
+            url: link_url('altj', 'RelaxerPR'),
+
             visited: false,
             pos: [59, 0.5],
             respawn: [59.6, 4.6, 3.0]
         },
 
-        {
-            name: 'relaxer',
-            url: link_url('altj', 'RelaxerPR'),
-            visited: false,
-            pos: [32, 74],
-            respawn: [34.8, 77.4, 1.3]
-        },
+        // VIDEOS
 
         {
             name: 'lsd0',
@@ -62,19 +61,29 @@ window.main = function() {
         },
 
         {
+            name: 'hotrs',
+            url: link_url('yt', '5A-4VGfx5lU'),
+            visited: false,
+            pos: [69, 104],
+            respawn: [68.1, 97.3, 3.1],
+        },
+
+        {
+            name: 'lsd1',
+            url: link_url('yt', 'ol4OSIGGukA'),
+            visited: false,
+            pos: [37, 62],
+            respawn: [35.4, 57.6, 3.21],
+        },
+
+        // PHOTOS
+
+        {
             name: 'hopscotch',
             url: link_url('pic', '0213'),
             visited: false,
             pos: [44, 25],
             respawn: [40.7, 27.2, 0.3]
-        },
-
-        {
-            name: 'headless',
-            url: link_url('pic', '0206'),
-            visited: false,
-            pos: [63, 9],
-            respawn: [62.1, 12.4, 0.7],
         },
 
         {
@@ -102,20 +111,53 @@ window.main = function() {
         },
 
         {
-            name: 'hotrs',
-            url: link_url('yt', '5A-4VGfx5lU'),
+            name: 'tree2',
+            url: link_url('pic', '0206'),
             visited: false,
-            pos: [69, 104],
-            respawn: [68.1, 97.3, 3.1],
+            pos: [94, 88],
+            respawn: [96.6, 84.1, 2.7]
+        },
+
+        // GIFS
+
+        {
+            // tree: gif1 "up by the roots"
+            name: 'gif1',
+            url: link_url('gif', '1'),
+
+            visited: false,
+            pos: [95, 42],
+            respawn: [92.8, 46.5, 0.6]
         },
 
         {
-            name: 'lsd1',
-            url: link_url('yt', 'ol4OSIGGukA'),
+            // lamp: gif3 leaf
+            name: 'gif3',
+            url: link_url('gif', '3'),
             visited: false,
-            pos: [37, 62],
-            respawn: [35.4, 57.6, 3.21],
+            pos: [38, 8],
+            respawn: [36.3, 14.1, 0.7]
         },
+
+        {
+            // woman: gif4 scarf
+            name: 'gif4',
+            //url: link_url('pic', '0206'),
+            url: link_url('gif', '4'),
+            visited: false,
+            pos: [63, 9],
+            respawn: [62.1, 12.4, 0.7],
+        },
+
+        {
+            // building site: gif5 "do you know?"
+            name: 'gif5',
+            url: link_url('gif', '5'),
+            visited: false,
+            pos: [32, 74],
+            respawn: [34.8, 77.4, 1.3]
+        },
+
     ];
 
     var sounds = {
@@ -163,7 +205,9 @@ window.main = function() {
         player.level = level;
         level.player = player;  // XXX
         init_player_state();
-        console.log('OK');
+
+        //console.log('L.S.D.');
+        //[ '.^..^^..', '.^.^..^^', '.^...^..' ].map(x => console.log(x));
     });
 
     var player = new Player;
@@ -302,15 +346,17 @@ window.main = function() {
             pos: [59.0, 0.0, -0.01],
             scale: 1.0,
             rotate: Math.PI,
-            texpos: 1
+            texpos: 0
         }),
 
+        /*
         new Placard({
             pos: [30.4, 0.0, -72.01],
             scale: 0.6,
             rotate: 1.0*Math.PI,
-            texpos: 0
+            texpos: 1
         })
+        */
     ];
 
     var paused = false;
