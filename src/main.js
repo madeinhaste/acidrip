@@ -217,13 +217,8 @@ window.main = function() {
 
 
     player.on_leave_area = function(area) {
-        console.log('leave area', area);
-
         if (area == 0) {
-            //sounds.intro.pause();
             sounds.intro.fade(1, 0, 500);
-            console.log('LEAVE');
-            //sounds.intro.on('fade', function() { sounds.intro.pause(); });
         }
 
         if (area == 2) {
@@ -247,7 +242,6 @@ window.main = function() {
 
         if (area == 6) {
             sounds.pool1.stop();
-            //sounds.pool2.stop();
             lyrics[0].fade();
         }
 
@@ -257,10 +251,7 @@ window.main = function() {
     };
 
     player.on_enter_area = function(area) {
-        console.log('enter area', area);
-
         if (area == 0) {
-            //sounds.intro.play();
             sounds.intro.fade(0, 1, 1000);
         }
 
@@ -363,9 +354,7 @@ window.main = function() {
     var devmode = false;
 
     function start(dev) {
-        console.log('main:start');
         sounds.intro.play();
-        console.log('main:start.animate');
         animate();
 
         if (dev) {
@@ -637,7 +626,6 @@ window.main = function() {
         var state = localStorage.getItem('player.state');
         if (!state) return;
         state = JSON.parse(state);
-        console.log('player.state:', state);
         vec3.copy(player.pos, state.pos);
         player.dir = state.dir;
 
@@ -677,7 +665,6 @@ window.main = function() {
             ghost.pos[1] = y;
 
             var dist = vec2.dist(ghost.pos, player.pos);
-            //console.log(dist);
             if (dist < 2.0) {
                 ghost.active = false;
                 sounds.screech.play();
@@ -686,7 +673,6 @@ window.main = function() {
     }
 
     function trigger_plane() {
-        console.log('PLANE!');
         sounds.plane_splash.play();
         level.plane_start = performance.now();
     }
@@ -698,7 +684,6 @@ window.main = function() {
         var px = ~~player.pos[0];
         var py = ~~player.pos[1];
         var dir = Math.round(player.dir) & 3;
-        //console.log(px, py, dir);
         if (px == 79 && py == 86 && dir == 3) {
             trigger_plane();
         }
@@ -788,7 +773,6 @@ window.main = function() {
         }
 
         player.touch.rotating = state ? true : false;
-        console.log('do_navpad_dir', dir, state, player.touch.advance);
     }
 
     function init_navpad() {
