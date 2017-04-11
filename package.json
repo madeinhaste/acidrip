@@ -13,7 +13,8 @@
         "build": "webpack --config webpack.config.js",
         "serve": "webpack-dev-server -d",
         "bsync": "browser-sync --config bs-config.js start",
-        "rollup": "rollup -c rollup.config.build.js"
+        "rollup": "rollup -c rollup.config.build.js",
+        "gulp": "gulp"
     },
     "dependencies": {
         "babel-core": "^6.24.0",
@@ -23,6 +24,9 @@
         "copy-to-clipboard": "^3.0.5",
         "file-size": "^1.0.0",
         "gl-matrix": "^2.3.2",
+        "gulp": "^3.9.1",
+        "gulp-uglify": "^2.1.2",
+        "gulp-usemin": "^0.3.28",
         "howler": "^2.0.3",
         "msgpack-lite": "^0.1.26",
         "pad-left": "^2.1.0",
