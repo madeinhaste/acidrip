@@ -152,9 +152,6 @@ window.main = function() {
         return;
     }
 
-    canvas.camera.far = 10;
-    canvas.camera.near = 0.1;
-    canvas.camera.fov = 30;
     canvas.light_pos = vec3.fromValues(100, 100, 100);
     canvas.light_pos_v = vec3.create();
 
@@ -525,8 +522,11 @@ window.main = function() {
         if (player_cam.enabled) {
             player_cam.update();
 
-            this.camera.far = 20;
+            // camera intrinsics
             this.camera.near = 0.01;
+            this.camera.far = 20;
+            this.camera.fov = 30;
+
             //this.camera.near = 0.5;
             this.camera.ortho = false;
             this.camera.update_quat(player_cam.pos, player_cam.dir);

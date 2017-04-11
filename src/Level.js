@@ -497,8 +497,9 @@ export class Level {
         pgm.uniformSampler2D('s_tix', this.texture);    // XXX
 
         if (this.fog_enabled) {
+            var fog_end = env.camera.far;
             pgm.uniform3f('fog_color', 0.05, 0, 0.15);
-            pgm.uniform2f('fog_range', 10, 20);
+            pgm.uniform2f('fog_range', 0.5*fog_end, fog_end);
         } else {
             pgm.uniform2f('fog_range', 10000, 10000);
         }
