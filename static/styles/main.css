@@ -19,12 +19,17 @@
     display: none; 
 }
 
-body {
+html, body {
     background-color: #000;
     color: #ebebeb;
     font: 16px mn-mono;
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
+    margin: 0;
+
+    /* webview fix: http://stackoverflow.com/a/33701551 */
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
 }
 
 a {
