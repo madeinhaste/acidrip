@@ -18,9 +18,11 @@ gulp.task('assets', function() {
         'sounds/**',
         'gifs/**',
         'fonts/**',
+        'gifs.html',
+        'photos.html',
     ];
 
-    gulp.src(assets, { cwd: 'static', base: 'static' })
+    return gulp.src(assets, { cwd: 'static', base: 'static' })
         .pipe(gulp.dest('dist'));
 });
 
@@ -35,6 +37,7 @@ gulp.task('usemin', function() {
 });
 
 gulp.task('default', [
+    //'clean',
     'usemin',
     'assets'
 ]);
