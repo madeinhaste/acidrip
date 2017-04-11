@@ -16,7 +16,7 @@ import shaders_glsl from './shaders.glsl';
 
 function get_sound(path, loop) {
     var exts = ['ogg', 'm4a', 'mp3'];
-    var srcs = _.map(exts, ext => `sounds/${ext}/${path}.${ext}`);
+    var srcs = _.map(exts, ext => `sounds/${path}.${ext}`);
     return new Howl({ src: srcs, loop: loop });
 }
 
@@ -733,8 +733,12 @@ window.main = function() {
                 return;
 
             //link.visited = true;
-            if (!devmode)
+            if (!devmode) {
                 open_link(link);
+
+                // kill sounds
+                sounds.siren.stop();
+            }
 
             link.visited = true;    // stop further linking
 
