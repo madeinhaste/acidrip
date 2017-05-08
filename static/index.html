@@ -14,7 +14,7 @@
         <meta property="og:url" content="http://www.altjband.com/relaxer/">
         <meta property="og:image" content="http://www.altjband.com/assets/images/share-img.jpg">
 
-	<link rel="icon" href="images/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
 
         <!-- build:css styles/styles.bundle.css -->
         <link href="styles/main.css" rel="stylesheet">
@@ -29,6 +29,14 @@
             ga('create', 'UA-65976468-3', 'auto');
             ga('send', 'pageview');
         </script>
+
+        <script>
+            digitalData = {
+                settings: { reportSuites: 'wmg,wmgatl,wmgaltjband.com' },
+                page: { pageInfo: { server: 'Alt-J:Site', platform: 'Static HTML' } },
+                content: { artist: 'Alt-J', label: 'Atlantic Records', sublabel: 'Canvasback' } };
+        </script>
+        <script src="//assets.adobedtm.com/31543e7db99435a92d6f4a2cf97c808672ed7dd0/satelliteLib-b6e3529c31d92a9252c30c1714b6b9342304145b.js"></script> 
     </head>
 
     <body>
@@ -119,5 +127,7 @@
         <!-- endbuild -->
         <script src="main.bundle.js"></script>
         <script> $(main); </script>
+
+        <script type="text/javascript">_satellite.pageBottom();</script>
     </body>
 </html>
