@@ -33,7 +33,7 @@ function link_url(type, id) {
         case 'pic':
             return 'photos.html#' + id
         case 'gif':
-            return 'gifs.html#Untitled-' + id
+            return 'gifs.html#Atl-J-' + id
     }
 }
 
@@ -133,7 +133,7 @@ window.main = function() {
         {
             // lamp: gif3 leaf
             name: 'gif3',
-            url: link_url('gif', '3'),
+            url: link_url('gif', '2'),
             visited: false,
             pos: [38, 8],
             respawn: [36.3, 14.1, 0.7]
@@ -143,7 +143,7 @@ window.main = function() {
             // woman: gif4 scarf
             name: 'gif4',
             //url: link_url('pic', '0206'),
-            url: link_url('gif', '4'),
+            url: link_url('gif', '3'),
             visited: false,
             pos: [63, 9],
             respawn: [62.1, 12.4, 0.7],
@@ -152,7 +152,7 @@ window.main = function() {
         {
             // building site: gif5 "do you know?"
             name: 'gif5',
-            url: link_url('gif', '5'),
+            url: link_url('gif', '4'),
             visited: false,
             pos: [32, 74],
             respawn: [34.8, 77.4, 1.3]
