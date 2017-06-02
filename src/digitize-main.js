@@ -11,8 +11,13 @@ const text = [
 
     //"Girls from the pool say 'Hi'"
 
-    "Pool summer summer pool summer vibes killed",
-    "In cold blood",
+    //"Pool summer summer pool summer vibes killed",
+    //"In cold blood",
+
+    //"How green",
+    //"How green was my valley?"
+
+    "Pay up sign up LA",
 ];
 
 class Stroke {
