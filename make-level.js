@@ -1,5 +1,6 @@
 import {LBD} from './src/lbd';
 import {BinaryReader, padl} from './src/utils';
+import {load_obj} from './src/obj';
 
 var fs = require('fs');
 var path = require('path');
@@ -175,6 +176,17 @@ function add_character(mom, lx, ly) {
 
     level.characters.push(ch);
 }
+
+function add_gravestone() {
+    console.log('adding gravestone');
+    var text = fs.readFileSync('./grave2.obj', 'utf8');
+    var obj = load_obj(text);
+    //console.log('grass:', add_model(objs[0]));
+    //console.log('stone:', add_model(objs[1]));
+    console.log('grave:', add_model(obj));
+}
+add_gravestone();
+
 
 // XXX add dummy tile for zero
 level.tiles = [null];
