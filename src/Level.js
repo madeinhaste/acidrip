@@ -149,6 +149,8 @@ const AREA_COLORS = {
     6: [0, 255, 255],       // cyan:
     7: [255, 128, 0],       // orange:
     8: [0, 255, 128],       // teal:
+    9: [255, 255, 192],     // white-red
+    10: [192, 255, 192],    // white-green
 };
 
 export class Level {
@@ -315,7 +317,7 @@ export class Level {
                 //console.log('level:load .. fetched msgpack gz:', url);
                 this.initialize(data);
             }),
-            this.load_texture('c')
+            this.load_texture('d')
         ]);
     }
 
@@ -324,6 +326,11 @@ export class Level {
             this.texture = create_texture(gl.RGBA, TEXTURE_W, TEXTURE_H);
 
         var url = `data/tex5${version}.mpz`;
+
+        //var tex_canvas = document.createElement('canvas');
+        //tex_canvas.width = 2048;
+        //tex_canvas.height = 512;
+        //var tex_canvas_ctx = tex_canvas.getContext('2d');
 
         return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -334,7 +341,33 @@ export class Level {
                     gl.TEXTURE_2D, 0,
                     tile.x, tile.y, tile.w, tile.h,
                     gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+                // paste to canvas
+                //var image_data = tex_canvas_ctx.createImageData(tile.w, tile.h);
+                //image_data.data.set(pixels);
+                //tex_canvas_ctx.putImageData(image_data, tile.x, tile.y);
             });
+
+            // patch in the grave textures
+            var texture = this.texture;
+
+            function load_image(url, tx, ty) {
+                return new Promise(resolve => {
+                    var img = new Image;
+                    img.src = url;
+                    img.onload = function() {
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+                        gl.texSubImage2D(gl.TEXTURE_2D, 0, tx << 7, ty << 7,
+                            gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+                    };
+                });
+            }
+
+            load_image('images/grave2.png', 2, 0);
+            load_image('images/ground.jpg', 13, 1);
+            //$('.debug').html(tex_canvas);
         });
     }
 
@@ -360,6 +393,44 @@ export class Level {
 
         this.ready = true;
         //console.log('level:initialize: ready');
+
+
+        // add gravestone
+        var self = this;
+        function add_grave() {
+            var tx = 94;
+            var ty = 18;
+
+            var map_w = self.map.w;
+            var map_h = self.map.h;
+            var map_index = ty * map_w + tx;
+            var tile_index = self.map.tiles[map_index];
+            var tile = self.tiles[tile_index];
+            while (tile.next)
+                tile = self.tiles[tile.next];
+
+            //this.tiles.push({ area: height:
+            //tile.next = tile_index;
+            console.log('grave tile:', tile);
+
+            var GRAVE_MODEL_INDEX = 0;
+            var grave_tile = {
+                area: 0,
+                height: 0,
+                model: GRAVE_MODEL_INDEX,
+                next: 0,
+                rotate: 3
+            };
+            var grave_tile_index = self.tiles.length;
+            self.tiles.push(grave_tile);
+            tile.next = grave_tile_index;
+        }
+        add_grave();
+
+        //var tile = this.tiles[tile_index];
+        //console.log('map_index:', x, y, map_index, tile);
+        //console.assert(tile);
+
     }
 
     bind_buffer(buffer_index) {
