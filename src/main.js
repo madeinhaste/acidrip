@@ -195,6 +195,14 @@ window.main = function() {
             respawn: [34.8, 77.4, 1.3]
         },
 
+        {
+            // grave
+            name: 'grave',
+            url: link_url('pic', 'boleyn'),
+            visited: false,
+            pos: [94, 18],
+            respawn: [92.3, 21.7, 0.625],
+        },
     ];
 
     var sounds = {
@@ -214,6 +222,8 @@ window.main = function() {
             siren: get_sound('siren', true),
             plane_splash: get_sound('plane_splash', false),
             door_open: get_sound('door_open', false),
+            breathing: get_sound('breathing', true),
+            choir: get_sound('choir', false),
         });
     }
 
@@ -285,6 +295,16 @@ window.main = function() {
         if (area == 8) {
             sounds.siren.stop();
         }
+
+        if (area == 9) {
+            sounds.choir.stop();
+            lyrics[3].fade();
+        }
+
+        if (area == 10) {
+            sounds.breathing.stop();
+            lyrics[4].fade();
+        }
     };
 
     player.on_enter_area = function(area) {
@@ -328,11 +348,21 @@ window.main = function() {
         if (area == 8) {
             sounds.siren.play();
         }
+
+        if (area == 9) {
+            sounds.choir.play();
+            lyrics[3].start();
+        }
+        
+        if (area == 10) {
+            sounds.breathing.play();
+            lyrics[4].start();
+        }
     };
 
 
     var lyrics = [
-        // pool
+        // girls from the pool
         new Lyric({
             id: 'lyr2',
             pos: [37.0, 1.5, -2.5],
@@ -354,7 +384,7 @@ window.main = function() {
             speed: 0.02
         }),
 
-        // brass
+        // in cold blood
         new Lyric({
             id: 'lyr4',
             pos: [91.005, 0.5, -12.5],
@@ -365,6 +395,28 @@ window.main = function() {
             speed: 0.20,
             distort: 0.0015,
             delay: 5.0
+        }),
+
+        // how green is my valley
+        new Lyric({
+            id: 'lyr5',
+            pos: [93.5, 1.7, -65.9],
+            scale: 2,
+            rotate: 0,
+            color: [0.2, 0.8, 0.1, 0.55],
+            color2: [1.0, 0.3, 0.0, 0.65],
+            speed: 0.20,
+        }),
+
+        // pay up sign up LA
+        new Lyric({
+            id: 'lyr6',
+            pos: [45.5, 1.4, -38.1],
+            scale: 1.8,
+            rotate: 1.0*Math.PI,
+            color: [0.3, 0.8, 0.9, 0.55],
+            color2: [1.0, 0.0, 0.0, 0.95],
+            speed: 0.15,
         })
     ];
 
