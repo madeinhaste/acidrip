@@ -24,10 +24,30 @@ function has_touch() {
     return Modernizr.touchevents;
 }
 
-function link_url(type, id) {
+function link_url(type, id, ...args) {
+    const YOUTUBE_IDS = {
+        adeline: '1XwU8H6e8Ts',
+        in_cold_blood: 'rP0uuI80wuY',
+        _3ww: 'ZwBkXgWNs_M',
+        house_of_the_rising_sun: 'X1Knskoe15g',
+        hit_me_like_that_snare: 'sXQVj2mQS5I',
+        deadcrush: 'LqdSvVpv3Zk',
+        last_year: '-OjkHRp2ti0',
+        pleader: 'tD__QQvknXU',
+        kimmel_3ww: '5SHTsgAvS88',
+        holland_in_cold_blood: '3sHa0bGGrw0',
+    };
+
     switch (type) {
         case 'yt':
-            return 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+            id = YOUTUBE_IDS[id] || id;
+            var url = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+            if (args)
+                url += '&' + args;
+
+            console.log('link_url:', url);
+            return url;
+
         case 'altj':
             return 'https://alt-j.lnk.to/' + id;
         case 'pic':
@@ -53,24 +73,30 @@ window.main = function() {
         // VIDEOS
 
         {
-            name: 'lsd0',
-            url: link_url('yt', 'p6vRUd9SFR8'),
+            // behind crane on the port
+            name: 'crane',
+            //url: link_url('yt', 'p6vRUd9SFR8'),
+            url: link_url('yt', 'pleader'),
             visited: false,
             pos: [88, 98],
             respawn: [87.8, 94.2, 3.1]
         },
 
         {
-            name: 'hotrs',
-            url: link_url('yt', '5A-4VGfx5lU'),
+            // end of longest jetty
+            name: 'jetty1',
+            //url: link_url('yt', '5A-4VGfx5lU'),
+            url: link_url('yt', 'house_of_the_rising_sun'),
             visited: false,
             pos: [69, 104],
             respawn: [68.1, 97.3, 3.1],
         },
 
         {
-            name: 'lsd1',
-            url: link_url('yt', 'ol4OSIGGukA'),
+            // eye graffiti (nearest to overpass)
+            name: 'eye1',
+            //url: link_url('yt', 'ol4OSIGGukA'),
+            url: link_url('yt', 'deadcrush'),
             visited: false,
             pos: [37, 62],
             respawn: [35.4, 57.6, 3.21],
@@ -79,14 +105,17 @@ window.main = function() {
         // PHOTOS
 
         {
+            // hopscotch girl
             name: 'hopscotch',
-            url: link_url('pic', '0213'),
+            //url: link_url('pic', '0213'),
+            url: link_url('yt', 'kimmel_3ww'),
             visited: false,
             pos: [44, 25],
             respawn: [40.7, 27.2, 0.3]
         },
 
         {
+            // gunman
             name: 'gunman',
             url: link_url('pic', '0218'),
             visited: false,
@@ -95,7 +124,8 @@ window.main = function() {
         },
 
         {
-            name: 'eye',
+            // second eye graffiti
+            name: 'eye2',
             url: link_url('pic', '0305'),
             visited: false,
             pos: [37, 70],
@@ -103,16 +133,20 @@ window.main = function() {
         },
 
         {
+            // sailor
             name: 'sailor',
-            url: link_url('pic', '2527'),
+            //url: link_url('pic', '2527'),
+            url: link_url('yt', 'holland_in_cold_blood'),
             visited: false,
             pos: [77, 97],
             respawn: [80.0, 95.1, 2.5],
         },
 
         {
+            // tree by port end wall
             name: 'tree2',
-            url: link_url('pic', '0206'),
+            //url: link_url('pic', '0206'),
+            url: link_url('yt', '_3ww'),
             visited: false,
             pos: [94, 88],
             respawn: [96.6, 84.1, 2.7]
@@ -121,38 +155,41 @@ window.main = function() {
         // GIFS
 
         {
-            // tree: gif1 "up by the roots"
-            name: 'gif1',
-            url: link_url('gif', '1'),
-
+            // tree
+            name: 'tree1',
+            //url: link_url('gif', '1'),
+            url: link_url('yt', 'last_year'),
             visited: false,
             pos: [95, 42],
             respawn: [92.8, 46.5, 0.6]
         },
 
         {
-            // lamp: gif3 leaf
-            name: 'gif3',
-            url: link_url('gif', '2'),
+            // lamp
+            name: 'lamp',
+            //url: link_url('gif', '2'),
+            url: link_url('yt', 'hit_me_like_that_snare'),
             visited: false,
             pos: [38, 8],
             respawn: [36.3, 14.1, 0.7]
         },
 
         {
-            // woman: gif4 scarf
-            name: 'gif4',
+            // woman
+            name: 'woman',
             //url: link_url('pic', '0206'),
-            url: link_url('gif', '3'),
+            //url: link_url('gif', '3'),
+            url: link_url('yt', 'adeline'),
             visited: false,
             pos: [63, 9],
             respawn: [62.1, 12.4, 0.7],
         },
 
         {
-            // building site: gif5 "do you know?"
-            name: 'gif5',
-            url: link_url('gif', '4'),
+            // building site
+            name: 'hole',
+            //url: link_url('gif', '4'),
+            url: link_url('yt', 'in_cold_blood', 't=5s'),
             visited: false,
             pos: [32, 74],
             respawn: [34.8, 77.4, 1.3]
