@@ -19,6 +19,16 @@ function calc_frustum_vertex(out, dp, imvp, x, z) {
     out[dp + 1] = -tmp[2];
 }
 
+function load_image(url) {
+    return new Promise(resolve => {
+        var img = new Image;
+        img.src = url;
+        img.onload = function() {
+            resolve(img);
+        };
+    });
+}
+
 const VERTEX_SIZE = 24;
 
 const CHARACTERS = {
@@ -327,10 +337,15 @@ export class Level {
 
         var url = `data/tex5${version}.mpz`;
 
-        //var tex_canvas = document.createElement('canvas');
-        //tex_canvas.width = 2048;
-        //tex_canvas.height = 512;
-        //var tex_canvas_ctx = tex_canvas.getContext('2d');
+        const DEBUG_TEXTURE = false;
+        var debug_ctx = null;
+
+        if (DEBUG_TEXTURE) {
+            var debug_canvas = document.createElement('canvas');
+            debug_canvas.width = 2048;
+            debug_canvas.height = 512;
+            debug_ctx = debug_canvas.getContext('2d');
+        }
 
         return fetch_msgpack_gz(url).then(data => {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -342,33 +357,78 @@ export class Level {
                     tile.x, tile.y, tile.w, tile.h,
                     gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-                // paste to canvas
-                //var image_data = tex_canvas_ctx.createImageData(tile.w, tile.h);
-                //image_data.data.set(pixels);
-                //tex_canvas_ctx.putImageData(image_data, tile.x, tile.y);
+                if (DEBUG_TEXTURE) {
+                    var image_data = debug_ctx.createImageData(tile.w, tile.h);
+                    image_data.data.set(pixels);
+                    debug_ctx.putImageData(image_data, tile.x, tile.y);
+                }
             });
 
-            // patch in the grave textures
-            var texture = this.texture;
+            this.patch_texture('images/grave2.png', 2, 0);
+            this.patch_texture('images/ground.jpg', 13, 1);
 
-            function load_image(url, tx, ty) {
-                return new Promise(resolve => {
-                    var img = new Image;
-                    img.src = url;
-                    img.onload = function() {
-                        gl.bindTexture(gl.TEXTURE_2D, texture);
-                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-                        gl.texSubImage2D(gl.TEXTURE_2D, 0, tx << 7, ty << 7,
-                            gl.RGBA, gl.UNSIGNED_BYTE, img);
-
-                    };
-                });
+            if (DEBUG_TEXTURE) {
+                $('.debug').html(debug_ctx.canvas);
             }
-
-            load_image('images/grave2.png', 2, 0);
-            load_image('images/ground.jpg', 13, 1);
-            //$('.debug').html(tex_canvas);
         });
+    }
+
+    // load and patch a tile over the texture. tx/ty are in 128 pixel increments
+    patch_texture(url, tx, ty) {
+        const tshift = 7;
+
+        load_image(url).then(img => {
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+            gl.texSubImage2D(
+                gl.TEXTURE_2D, 0,
+                tx << tshift, ty << tshift,
+                gl.RGBA, gl.UNSIGNED_BYTE, img);
+        });
+    }
+
+    get_tile_at_cell(tx, ty) {
+        var map_w = this.map.w;
+        var map_h = this.map.h;
+
+        if (tx < 0 || tx >= map_w || ty < 0 || ty >= map_h)
+            return null;
+
+        var map_index = ty * map_w + tx;
+        var tile_index = this.map.tiles[map_index];
+        var tile = this.tiles[tile_index];
+
+        return tile;
+    }
+
+    // creates a tile and returns its index
+    create_tile(opts) {
+        var tile = {
+            area: 0,
+            height: 0,
+            model: 0,
+            next: 0,
+            rotate: 0
+        };
+
+        _.assign(tile, opts);
+
+        var tile_index = this.tiles.length;
+        this.tiles.push(tile);
+        return tile_index;
+    }
+
+    // adds a tile to the end of the chain at tx,ty
+    append_tile_at(tx, ty, opts) {
+        var tile = this.get_tile_at_cell(tx, ty);
+        console.assert(tile);
+
+        // traverse chain
+        while (tile.next)
+            tile = self.tiles[tile.next];
+
+        // add the model
+        tile.next = this.create_tile(opts);
     }
 
     initialize(data) {
@@ -391,46 +451,16 @@ export class Level {
         // maybe load areas ???
         //this.load_areas_from_local_storage();
 
+        this.initialize_extra();
+
         this.ready = true;
         //console.log('level:initialize: ready');
+    }
 
-
-        // add gravestone
-        var self = this;
-        function add_grave() {
-            var tx = 94;
-            var ty = 18;
-
-            var map_w = self.map.w;
-            var map_h = self.map.h;
-            var map_index = ty * map_w + tx;
-            var tile_index = self.map.tiles[map_index];
-            var tile = self.tiles[tile_index];
-            while (tile.next)
-                tile = self.tiles[tile.next];
-
-            //this.tiles.push({ area: height:
-            //tile.next = tile_index;
-            console.log('grave tile:', tile);
-
-            var GRAVE_MODEL_INDEX = 0;
-            var grave_tile = {
-                area: 0,
-                height: 0,
-                model: GRAVE_MODEL_INDEX,
-                next: 0,
-                rotate: 3
-            };
-            var grave_tile_index = self.tiles.length;
-            self.tiles.push(grave_tile);
-            tile.next = grave_tile_index;
-        }
-        add_grave();
-
-        //var tile = this.tiles[tile_index];
-        //console.log('map_index:', x, y, map_index, tile);
-        //console.assert(tile);
-
+    initialize_extra() {
+        const GRAVE_MODEL_INDEX = 0;
+        this.append_tile_at(94, 18, {model: GRAVE_MODEL_INDEX, rotate: 3});
+        this.append_tile_at(60, 37, {model: GRAVE_MODEL_INDEX, rotate: 3});
     }
 
     bind_buffer(buffer_index) {
